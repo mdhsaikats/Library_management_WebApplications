@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In or Registration</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-box">
+      <!-- Sign In Form -->
+      <form id="signin" class="form active">
+        <h1>Sign In</h1>
+        <div class="input-container">
+          <label for="signin-username">Username</label>
+          <input type="username" id="signin-username" name="username" required />
+        </div>
+        <div class="input-container">
+          <label for="signin-password">Password</label>
+          <input type="password" id="signin-password" name="password" required />
+        </div>
+        
+        <button type="button" onclick="window.location.href='dashboard.html'">Sign In</button>
+        <p class="switch-form">Don't have an account? <span id="switch-to-register">Register</span></p>
+      </form>
+
+      <!-- Registration Form -->
+      <form id="register" class="form">
+        <h1>Register</h1>
+        <div class="input-container">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required />
+        </div>
+        <div class="input-container">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" name="email" required />
+        </div>
+        <div class="input-container">
+          <label for="register-password">Password</label>
+          <input type="password" id="register-password" name="password" required />
+        </div>
+        <div class="input-container">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="confirm-password" name="confirmPassword" required />
+        </div>
+        <button type="submit">Register</button>
+        <p class="switch-form">Already have an account? <span id="switch-to-signin">Sign In</span></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

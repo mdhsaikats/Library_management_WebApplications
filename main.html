@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
+      <ul>
+        <a href="main.html"><li class="active">Dashboard</li></a>
+        <a href="books.html"><li>Books</li></a>
+        <a href="user.html"><li class="nav-item">Members</li></a>
+
+        <li>Borrow</li>
+        <li>Return</li>
+        <li>Transactions</li>
+        <li>Settings</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <h1>Welcome to the Library!</h1>
+        <button class="logout-btn" onclick="window.location.href='login.html'">Logout</button>
+      </header>
+
+      <section class="cards">
+        <div class="card" style="background-color: #FFD166;">
+          <h3>Total Books</h3>
+          <p>1,245</p>
+        </div>
+        <div class="card" style="background-color: #06D6A0;">
+          <h3>Members</h3>
+          <p>321</p>
+        </div>
+        <div class="card" style="background-color: #EF476F;">
+          <h3>Borrowed Today</h3>
+          <p>58</p>
+        </div>
+        <div class="card" style="background-color: #118AB2;">
+          <h3>Returned</h3>
+          <p>43</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
