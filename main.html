@@ -14,7 +14,6 @@
         <a href="main.html"><li class="active">Dashboard</li></a>
         <a href="books.html"><li>Books</li></a>
         <a href="user.html"><li class="nav-item">Members</li></a>
-
         <li>Borrow</li>
         <li>Return</li>
         <li>Transactions</li>
@@ -31,22 +30,25 @@
       <section class="cards">
         <div class="card" style="background-color: #FFD166;">
           <h3>Total Books</h3>
-          <p>1,245</p>
+          <p id="totalBooks">Loading...</p>
         </div>
         <div class="card" style="background-color: #06D6A0;">
           <h3>Members</h3>
-          <p>321</p>
+          <p id="members">Loading...</p>
         </div>
         <div class="card" style="background-color: #EF476F;">
           <h3>Borrowed Today</h3>
-          <p>58</p>
+          <p id="borrowedToday">Loading...</p>
         </div>
         <div class="card" style="background-color: #118AB2;">
           <h3>Returned</h3>
-          <p>43</p>
+          <p id="returned">Loading...</p>
         </div>
       </section>
     </main>
   </div>
+
+  <!-- Link to separate JavaScript file -->
+  <script src="main.js"></script>
 </body>
 </html>
