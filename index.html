@@ -11,19 +11,20 @@
     <div class="auth-box">
       <!-- Sign In Form -->
       <form id="signin" class="form active">
-        <h1>Sign In</h1>
-        <div class="input-container">
-          <label for="signin-username">Username</label>
-          <input type="username" id="signin-username" name="username" required />
-        </div>
-        <div class="input-container">
-          <label for="signin-password">Password</label>
-          <input type="password" id="signin-password" name="password" required />
-        </div>
-        
-        <button type="button" onclick="window.location.href='main.html'">Sign In</button>
-        <p class="switch-form">Don't have an account? <span id="switch-to-register">Register</span></p>
-      </form>
+  <h1>Sign In</h1>
+  <div class="input-container">
+    <label for="signin-username">Username</label>
+    <input type="text" id="signin-username" name="username" required />
+  </div>
+  <div class="input-container">
+    <label for="signin-password">Password</label>
+    <input type="password" id="signin-password" name="password" required />
+  </div>
+  <button type="submit">Sign In</button>
+          <p class="switch-form">Don't have an account? <span id="switch-to-register">Register</span></p>
+
+</form>
+
 
       <!-- Registration Form -->
       <form id="register" class="form">
@@ -37,6 +38,18 @@
           <input type="email" id="register-email" name="email" required />
         </div>
         <div class="input-container">
+          <label for="register-position">Position</label>
+          <input type="text" id="register-position" name="Position" required />
+        </div>
+        <div class="input-container">
+          <label for="register-age">Age</label>
+          <input type="text" id="register-age" name="age" required />
+        </div>
+        <div class="input-container">
+          <label for="register-username">Username</label>
+          <input type="username" id="register-username" name="username" required />
+        </div>
+        <div class="input-container">
           <label for="register-password">Password</label>
           <input type="password" id="register-password" name="password" required />
         </div>
@@ -44,6 +57,7 @@
           <label for="confirm-password">Confirm Password</label>
           <input type="password" id="confirm-password" name="confirmPassword" required />
         </div>
+        
         <button type="submit">Register</button>
         <p class="switch-form">Already have an account? <span id="switch-to-signin">Sign In</span></p>
       </form>

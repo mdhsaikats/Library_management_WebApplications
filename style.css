@@ -48,14 +48,14 @@ input {
 button {
   padding: 0.7rem;
   border: none;
-  background-color: #007bff;
+  background-color: #2980b9;
   color: white;
   border-radius: 5px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #236ea0;
 }
 
 .switch-form {
@@ -64,7 +64,7 @@ button:hover {
 }
 
 .switch-form span {
-  color: #007bff;
+  color: #2980b9;
   cursor: pointer;
   font-weight: bold;
 }
