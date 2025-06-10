@@ -103,8 +103,9 @@ document.getElementById("register").addEventListener("submit", async function (e
     console.log(result);
 
     // Optional: Redirect or reset form
-    // window.location.href = "/login.html";
-    // document.getElementById("register").reset();
+    window.location.href = "/index.html";
+    document.getElementById("register").reset();
+
 
   } catch (error) {
     console.error("Error:", error.message);

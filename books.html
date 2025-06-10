@@ -32,17 +32,18 @@
       <input type="text" id="add-author" name="author" placeholder="Author name" required>
     </div>
     <div class="book-add-group">
+      <label for="add-isbn">ISBN</label>
+      <input type="text" id="add-isbn" name="isbn" placeholder="isbn number" required>
+    </div>
+    <div class="book-add-group">
+      <label for="add-published_year">Published Year</label>
+      <input type="text" id="add-published_year" name="published_year" placeholder="Published Year" required>
+    </div>
+    <div class="book-add-group">
       <label for="add-genre">Genre</label>
       <input type="text" id="add-genre" name="genre" placeholder="e.g. Fiction, History" required>
     </div>
-    <div class="book-add-group">
-      <label for="add-status">Status</label>
-      <select id="add-status" name="status" required>
-        <option value="">Select</option>
-        <option value="Available">Available</option>
-        <option value="Issued">Issued</option>
-      </select>
-    </div>
+
     <button type="submit" class="book-add-button">Add Book</button>
   </form>
 </section>
@@ -52,16 +53,19 @@
   <table class="styled-table">
     <thead>
       <tr>
-        <th>Title</th><th>Author</th><th>Genre</th><th>Status</th>
+<th>Title</th><th>Author</th><th>ISBN</th><th>Published Year</th><th>Genre</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>Atomic Habits</td><td>James Clear</td><td>Self-help</td><td>Available</td></tr>
-      <tr><td>The Alchemist</td><td>Paulo Coelho</td><td>Fiction</td><td>Issued</td></tr>
+      <tr><td>Atomic Habits</td><td>James Clear</td><td>01721213132</td><td>1987</td><td>Self-help</td><td>Available</td></tr>
+      <tr><td>The Alchemist</td><td>Paulo Coelho</td><td>090494939491</td><td>1998</td><td>Fiction</td><td>Issued</td></tr>
     </tbody>
   </table>
 </section>
 
 
     </div>  
+
+    <script src="books.js"></script>
+
 </body>

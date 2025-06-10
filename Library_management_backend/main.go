@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -48,9 +49,9 @@ func dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Borrowed Today - safer query using date range
-	if err := db.QueryRow(`SELECT COUNT(*) FROM loans WHERE issued_on >= CURDATE() AND issued_on < CURDATE() + INTERVAL 1 DAY`).Scan(&data.BorrowedToday); err != nil {
-		fmt.Printf("Error fetching borrowed today: %v\n", err)
-		http.Error(w, "Error fetching borrowed today", http.StatusInternalServerError)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM loans`).Scan(&data.BorrowedToday); err != nil {
+		fmt.Printf("Error fetching total borrowed: %v\n", err)
+		http.Error(w, "Error fetching total borrowed", http.StatusInternalServerError)
 		return
 	}
 
@@ -117,9 +118,9 @@ func registration(w http.ResponseWriter, r *http.Request) {
 
 	var user struct {
 		Fullname string `json:"full_name"`
-		Email    string `json:"email"`
 		Position string `json:"position"`
-		Age      int    `json:"age"`
+		Age      string `json:"age"`
+		Email    string `json:"email"`
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
@@ -150,6 +151,93 @@ func registration(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func add_books(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	var book struct {
+		Title         string `json:"title"`
+		Author        string `json:"author"`
+		ISBN          string `json:"isbn"`
+		PublishedYear string `json:"published_year"`
+		Genre         string `json:"category"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	yearInt, err := strconv.Atoi(book.PublishedYear)
+	if err != nil {
+		http.Error(w, "Invalid published year", http.StatusBadRequest)
+		return
+	}
+	query := "INSERT INTO books (title, author, isbn, published_year, genre) VALUES (?, ?, ?, ?, ?)"
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		http.Error(w, "Error preparing statement", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(book.Title, book.Author, book.ISBN, yearInt, book.Genre)
+	if err != nil {
+		http.Error(w, "Error executing statement", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	response := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Book added successfully",
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func topBooks(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	type Book struct {
+		Title string `json:"title"`
+		Count int    `json:"count"`
+	}
+
+	rows, err := db.Query(`
+        SELECT b.title, COUNT(*) AS borrow_count
+	FROM loans l
+	JOIN bookcopies bc ON l.copy_id = bc.copy_id
+	JOIN books b ON bc.book_id = b.book_id
+	GROUP BY b.book_id, b.title
+	ORDER BY borrow_count DESC
+	LIMIT 5;
+
+    `)
+	if err != nil {
+		http.Error(w, "Error fetching top books", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var books []Book
+	for rows.Next() {
+		var book Book
+		if err := rows.Scan(&book.Title, &book.Count); err != nil {
+			http.Error(w, "Error scanning book", http.StatusInternalServerError)
+			return
+		}
+		books = append(books, book)
+	}
+	json.NewEncoder(w).Encode(books)
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/library_management")
@@ -171,7 +259,8 @@ func main() {
 	http.HandleFunc("/dashboard", dashboard)
 	http.HandleFunc("/signin", signin)
 	http.HandleFunc("/registration", registration)
-
+	http.HandleFunc("/add_books", add_books)
+	http.HandleFunc("/top-books", topBooks)
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {

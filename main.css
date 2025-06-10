@@ -333,3 +333,30 @@ a{
 .submit-user-btn:hover {
   background-color: #04b485;
 }
+.chart-card {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0rem auto;
+  max-width: 700px; /* Wider card */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chart-card h2 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+}
+
+#dashboardChart {
+  display: block;
+  width: 100% !important;
+  height: 100px !important;
+  max-width: 100%;
+  max-height: 100px;
+  margin: 0 auto;
+}
