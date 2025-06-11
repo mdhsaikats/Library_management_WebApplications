@@ -8,76 +8,63 @@
 </head>
 <body>
   <div class="library-container">
-    <aside class="library-sidebar">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
       <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
-      <ul class="nav-links">
-        <a href="main.html"><li class="nav-item">Dashboard</li></a>
-        <a href="books.html"><li class="nav-item">Books</li></a>
-        <a href="user.html"><li class="nav-item active-link">Members</li></a>
-        <li class="nav-item">Borrow</li>
-        <li class="nav-item">Return</li>
-        <li class="nav-item">Transactions</li>
-        <li class="nav-item">Settings</li>
+      <ul>
+        <a href="main.html"><li>Dashboard</li></a>
+        <a href="books.html"><li>Books</li></a>
+        <a href="user.html" ><li class="active">Members</li></a>
+        <li>Borrow</li>
+        <li>Return</li>
+        <li>Transactions</li>
+        <li>Settings</li>
       </ul>
     </aside>
 
+    <!-- Add New Member Form -->
     <section class="add-user-section">
-  <h2><img class="icon" src="asset/group.png"> Add New Member</h2>
-  <form class="user-form">
-    <div class="form-group">
-      <label for="full-name">Full Name</label>
-      <input type="text" id="full-name" name="fullName" required />
-    </div>
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" required />
-    </div>
-    <div class="form-group">
-      <label for="phone">Phone Number</label>
-      <input type="tel" id="phone" name="phone" required />
-    </div>
-    <div class="form-group">
-      <label for="membership-id">Membership ID</label>
-      <input type="text" id="membership-id" name="membershipId" required />
-    </div>
-    <button type="submit" class="submit-user-btn">Add Member</button>
-  </form>
-</section>
+      <h2><img class="icon" src="asset/group.png" alt="Group Icon"> Add New Member</h2>
+      <form class="user-form">
+        <div class="form-group">
+          <label for="full-name">Full Name</label>
+          <input type="text" id="full-name" name="fullName" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" required />
+        </div>
+        <button type="submit" class="submit-user-btn">Add Member</button>
+      </form>
+    </section>
 
-
-    <main class="content-section">
-      <h2 class="section-title"><img class="icon" src="asset/user.png"> User List</h2>
+    <!-- User List Table -->
+    <main class="content-section" id="users-section">
+      <h2 class="section-title">
+        <img class="icon" src="asset/user.png" alt="User Icon"> User List
+      </h2>
       <table class="user-table">
         <thead>
           <tr>
+            <th>ID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Membership Type</th>
-            <th>Status</th>
+            <th>Phone</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>John Doe</td>
-            <td>john@example.com</td>
-            <td>Standard</td>
-            <td>Active</td>
-          </tr>
-          <tr>
-            <td>Jane Smith</td>
-            <td>jane@example.com</td>
-            <td>Premium</td>
-            <td>Inactive</td>
-          </tr>
-          <tr>
-            <td>Ali Khan</td>
-            <td>ali@example.com</td>
-            <td>Standard</td>
-            <td>Active</td>
-          </tr>
+          <!-- User data will be dynamically inserted here by user.js -->
         </tbody>
       </table>
     </main>
   </div>
+
+  <!-- JS Script -->
+  <script src="user.js"></script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
+      <ul>
+        <a href="main.html"><li class="active">Dashboard</li></a>
+        <a href="books.html"><li>Books</li></a>
+        <a href="user.html"><li class="nav-item">Members</li></a>
+       <a href="borrow.html"><li>Borrow</li></a> 
+        <li>Return</li>
+        <li>Transactions</li>
+        <li>Settings</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div class="member-search-container">
+        <h2>Find Member</h2>
+        <form id="userSearchForm">
+          <label for="phone" class="search-label">Enter Phone Number:</label>
+          <div class="search-bar-wrapper">
+            <input type="text" id="phone" name="phone" required placeholder="Phone number" class="big-search-input">
+            <button type="submit" class="big-search-btn">
+              <span class="search-icon">&#128269;</span> Search
+            </button>
+          </div>
+          <div id="userSearchMsg" class="search-msg"></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -289,6 +289,105 @@ func get_books(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
+func addUser(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	fmt.Println("Add user endpoint hit")
+	w.Header().Set("Content-Type", "application/json")
+
+	var user struct {
+		Fullname string `json:"name"`
+		Email    string `json:"email"`
+		Phone    string `json:"phone"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	query := "INSERT INTO users (name, email, phone) VALUES (?, ?, ?)"
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		http.Error(w, "Error preparing statement", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(user.Fullname, user.Email, user.Phone)
+	if err != nil {
+		http.Error(w, "Error executing insert", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "User added successfully"})
+}
+
+func getUsers(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	rows, err := db.Query("SELECT user_id, name, email, phone FROM users")
+	if err != nil {
+		http.Error(w, "Error fetching users", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type User struct {
+		UserID int    `json:"user_id"`
+		Name   string `json:"name"`
+		Email  string `json:"email"`
+		Phone  string `json:"phone"`
+	}
+
+	var users []User
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.UserID, &user.Name, &user.Email, &user.Phone)
+		if err != nil {
+			http.Error(w, "Error scanning user", http.StatusInternalServerError)
+			return
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, "Row iteration error", http.StatusInternalServerError)
+		return
+	}
+
+	// ✅ Encode the result as JSON
+	err = json.NewEncoder(w).Encode(users)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+func checkUser(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	phone := r.URL.Query().Get("phone")
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE phone=?)", phone).Scan(&exists)
+	if err != nil {
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]bool{"exists": exists})
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/library_management")
@@ -313,6 +412,10 @@ func main() {
 	http.HandleFunc("/add_books", add_books)
 	http.HandleFunc("/top-books", topBooks)
 	http.HandleFunc("/get_books", get_books)
+	http.HandleFunc("/add_user", addUser)
+	http.HandleFunc("/get_users", getUsers)
+	http.HandleFunc("/check_user", checkUser)
+
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
