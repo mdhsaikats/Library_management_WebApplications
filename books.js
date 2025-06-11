@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 🔄 1. Fetch and display books
   async function loadBooks() {
     try {
-      const response = await fetch('http://localhost:8080/add_books');
+      const response = await fetch('http://localhost:8080/get_books');
       if (!response.ok) throw new Error('Failed to fetch books');
 
       const books = await response.json();

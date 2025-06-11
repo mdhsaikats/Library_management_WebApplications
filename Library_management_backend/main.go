@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -153,29 +152,33 @@ func registration(w http.ResponseWriter, r *http.Request) {
 
 func add_books(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
+
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	fmt.Println("Add books endpoint hit")
 	w.Header().Set("Content-Type", "application/json")
 
 	var book struct {
-		Title         string `json:"title"`
-		Author        string `json:"author"`
-		ISBN          string `json:"isbn"`
-		PublishedYear string `json:"published_year"`
-		Genre         string `json:"category"`
+		Title          string `json:"title"`
+		Author         string `json:"author"`
+		ISBN           string `json:"isbn"`
+		Published_Year int    `json:"published_year"`
+		Genre          string `json:"genre"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	yearInt, err := strconv.Atoi(book.PublishedYear)
-	if err != nil {
-		http.Error(w, "Invalid published year", http.StatusBadRequest)
-		return
-	}
+
 	query := "INSERT INTO books (title, author, isbn, published_year, genre) VALUES (?, ?, ?, ?, ?)"
 	stmt, err := db.Prepare(query)
 	if err != nil {
@@ -183,18 +186,14 @@ func add_books(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(book.Title, book.Author, book.ISBN, yearInt, book.Genre)
+
+	_, err = stmt.Exec(book.Title, book.Author, book.ISBN, book.Published_Year, book.Genre)
 	if err != nil {
-		http.Error(w, "Error executing statement", http.StatusInternalServerError)
+		http.Error(w, "Error executing insert", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	response := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Book added successfully",
-	}
-	json.NewEncoder(w).Encode(response)
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Book added successfully"})
 }
 
 func topBooks(w http.ResponseWriter, r *http.Request) {
@@ -238,6 +237,58 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
+func get_books(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	fmt.Println("Get books endpoint hit")
+	w.Header().Set("Content-Type", "application/json")
+
+	rows, err := db.Query("SELECT title, author, isbn, published_year, genre FROM books")
+	if err != nil {
+		http.Error(w, "Error fetching books", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var books []map[string]interface{}
+
+	for rows.Next() {
+		var title, author, isbn, genre string
+		var publishedYear int
+
+		if err := rows.Scan(&title, &author, &isbn, &publishedYear, &genre); err != nil {
+			http.Error(w, "Error scanning row", http.StatusInternalServerError)
+			return
+		}
+
+		book := map[string]interface{}{
+			"title":          title,
+			"author":         author,
+			"isbn":           isbn,
+			"published_year": publishedYear,
+			"genre":          genre,
+		}
+		books = append(books, book)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, "Error reading rows", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(books)
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/library_management")
@@ -261,6 +312,7 @@ func main() {
 	http.HandleFunc("/registration", registration)
 	http.HandleFunc("/add_books", add_books)
 	http.HandleFunc("/top-books", topBooks)
+	http.HandleFunc("/get_books", get_books)
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
