@@ -378,13 +378,36 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 
 func checkUser(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
-	phone := r.URL.Query().Get("phone")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	type RequestBody struct {
+		Phone string `json:"phone"`
+	}
+	var reqBody RequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if reqBody.Phone == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("Check user endpoint hit with phone:", reqBody.Phone)
+
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE phone=?)", phone).Scan(&exists)
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE phone=?)", reqBody.Phone).Scan(&exists)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
+
 	json.NewEncoder(w).Encode(map[string]bool{"exists": exists})
 }
 
@@ -414,7 +437,7 @@ func main() {
 	http.HandleFunc("/get_books", get_books)
 	http.HandleFunc("/add_user", addUser)
 	http.HandleFunc("/get_users", getUsers)
-	http.HandleFunc("/check_user", checkUser)
+	http.HandleFunc("/check-user", checkUser)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)

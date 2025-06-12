@@ -3,9 +3,18 @@ document.getElementById('userSearchForm').addEventListener('submit', async funct
   const phone = document.getElementById('phone').value.trim();
   const msg = document.getElementById('userSearchMsg');
   msg.textContent = "Checking...";
+
   try {
-    const res = await fetch(`http://localhost:8080/check-user?phone=${encodeURIComponent(phone)}`);
-    if (!res.ok) throw new Error("Network error");
+    const res = await fetch('http://localhost:8080/check-user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ phone })
+    });
+
+    if (!res.ok) throw new Error();
+
     const data = await res.json();
     if (data.exists) {
       window.location.href = `borrow_action.html?user=${encodeURIComponent(phone)}`;
