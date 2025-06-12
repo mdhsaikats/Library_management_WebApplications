@@ -31,29 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Sign-in form submit handler
-  signinForm.addEventListener('submit', function (e) {
-    e.preventDefault();
+// Sign-in form submit handler
+signinForm.addEventListener('submit', function (e) {
+  e.preventDefault();
 
-    const username = document.getElementById('signin-username').value;
-    const password = document.getElementById('signin-password').value;
+  const username = document.getElementById('signin-username').value;
+  const password = document.getElementById('signin-password').value;
 
-    fetch('http://localhost:8080/signin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+  fetch('http://localhost:8080/signin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error('Login failed');
+      return res.json();
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Login failed');
-        return res.json();
-      })
-      .then((data) => {
-        window.location.href = 'main.html';
-      })
-      .catch((err) => {
-        alert('Login failed: ' + err.message);
-      });
-  });
+    .then((data) => {
+      // Store the admin_id locally
+      localStorage.setItem('admin_id', data.admin_id);
+
+      // Optionally also store username if needed
+      localStorage.setItem('username', username);
+
+      // Redirect to dashboard
+      window.location.href = 'main.html';
+    })
+    .catch((err) => {
+      alert('Login failed: ' + err.message);
+    });
 });
 
 
@@ -112,3 +118,5 @@ document.getElementById("register").addEventListener("submit", async function (e
     alert("Registration failed. Please try again.");
   }
 });
+}
+);

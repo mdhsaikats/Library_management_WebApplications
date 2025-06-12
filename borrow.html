@@ -21,18 +21,14 @@
       </ul>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content-search">
       <div class="member-search-container">
-        <h2>Find Member</h2>
         <form id="userSearchForm">
-          <label for="phone" class="search-label">Enter Phone Number:</label>
-          <div class="search-bar-wrapper">
-            <input type="text" id="phone" name="phone" required placeholder="Phone number" class="big-search-input">
-            <button type="submit" class="big-search-btn">
-              <span class="search-icon">&#128269;</span> Search
-            </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="phone" name="phone" required placeholder="Search user using the user phone number" style="flex:1; padding:0.7rem; border-radius:20px; border:1px solid #bbb;">
+            <button type="submit" style="padding:0.7rem 1.2rem; border-radius:20px; border:none; background:#118AB2; color:#fff;">Search</button>
           </div>
-          <div id="userSearchMsg" class="search-msg"></div>
+          <div id="userSearchMsg" style="margin-top:0.7rem; color:#EF476F; font-size:0.98rem;"></div>
         </form>
       </div>
     </main>

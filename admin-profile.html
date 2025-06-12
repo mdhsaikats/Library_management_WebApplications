@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
+      <ul>
+        <a href="main.html"><li class="active">Dashboard</li></a>
+        <a href="books.html"><li>Books</li></a>
+        <a href="user.html"><li class="nav-item">Members</li></a>
+       <a href="borrow.html"><li>Borrow</li></a> 
+        <li>Return</li>
+        <li>Transactions</li>
+        <li>Settings</li>
+      </ul>
+    </aside>
+
+    <div class="admin-profile-card">
+      <h2>
+        <img class="icon" src="asset/manager.png" style="width: 30px; height: 30px;" onclick="window.location.href='admin-profile.html'">
+        Admin Profile
+      </h2>
+      <div class="profile-details">
+        <div class="detail detail-name"><strong>Name:</strong> Loading...</div>
+        <div class="detail detail-position"><strong>Position:</strong> Loading...</div>
+        <div class="detail detail-age"><strong>Age:</strong> Loading...</div>
+        <div class="detail detail-email"><strong>Email:</strong> Loading...</div>
+        <div class="detail detail-username"><strong>Username:</strong> Loading...</div>
+      </div>
+    </div>
+
+    <script src="admin-profile.js"></script>
+  </div>
+</body>
+</html>

@@ -96,13 +96,21 @@ func signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Send admin_id as JSON
 	response := struct {
 		AdminID int `json:"admin_id"`
 	}{
 		AdminID: adminID,
 	}
 
-	json.NewEncoder(w).Encode(response)
+	jsonResp, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResp)
 }
 
 func registration(w http.ResponseWriter, r *http.Request) {
@@ -411,6 +419,46 @@ func checkUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]bool{"exists": exists})
 }
 
+func getAdmin(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get admin_id from query parameter
+	adminID := r.URL.Query().Get("admin_id")
+	if adminID == "" {
+		http.Error(w, "admin_id is required", http.StatusBadRequest)
+		return
+	}
+
+	var admin struct {
+		FullName string `json:"full_name"`
+		Position string `json:"position"`
+		Age      string `json:"age"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	}
+
+	// Query for the specific admin (removed joining_date)
+	err := db.QueryRow("SELECT full_name, position, age, email, username FROM admin WHERE admin_id = ?", adminID).
+		Scan(&admin.FullName, &admin.Position, &admin.Age, &admin.Email, &admin.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Admin not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error fetching admin", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(admin)
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/library_management")
@@ -438,6 +486,7 @@ func main() {
 	http.HandleFunc("/add_user", addUser)
 	http.HandleFunc("/get_users", getUsers)
 	http.HandleFunc("/check-user", checkUser)
+	http.HandleFunc("/get_admin", getAdmin)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
