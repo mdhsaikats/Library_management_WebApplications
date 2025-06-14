@@ -52,8 +52,15 @@ body {
 
 .topbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* pushes left and right sides */
   align-items: center;
+  padding: 10px 20px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* space between button and image */
 }
 
 .logout-btn {
@@ -64,8 +71,16 @@ body {
   border-radius: 5px;
   font-weight: bold;
   cursor: pointer;
-  margin-right: -550px;
 }
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+
 
 .cards {
   display: grid;
@@ -93,7 +108,7 @@ a{
 }
 
 .section, .content-section, .book-add-section {
-  max-width: 900px;
+  max-width: 4000px;
   margin: 2rem auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -108,8 +123,8 @@ a{
 
 .book-list-container {
   width: 100%;
-  max-width: 800px;
-  height: 595px; /* Fixed height */
+  max-width: 1200px; /* Changed from 800px to 600px */
+  height: 100%; /* Fixed height */
   background-color: #fff;
   padding: 20px;
   margin-top: -30px;
@@ -353,8 +368,8 @@ a{
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin: 0rem auto;
-  max-width: 700px; /* Wider card */
   width: 100%;
+  max-width: 4000px; /* Wider card */
   box-sizing: border-box;
 }
 
@@ -558,10 +573,6 @@ a{
   cursor: not-allowed;
 }
 
-.profile-pic{
-  margin-left: -60px;
-    cursor: pointer;
-}
 
 .admin-profile-card {
   max-width: 1070px;
