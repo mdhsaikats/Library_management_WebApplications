@@ -106,8 +106,12 @@ a{
     color: #f9f9f9;
     text-decoration: none;
 }
+.section{
+  margin-top: 60px;
+  margin-left: 60px;
+}
 
-.section, .content-section, .book-add-section {
+.content-section{
   max-width: 4000px;
   margin: 2rem auto;
   padding: 2rem;
@@ -119,38 +123,16 @@ a{
   color: #073B4C;
   margin-bottom: 1.5rem;
   font-size: 1.8rem;
-}
-
-.book-list-container {
-  width: 100%;
-  max-width: 1200px; /* Changed from 800px to 600px */
-  height: 100%; /* Fixed height */
-  background-color: #fff;
-  padding: 20px;
-  margin-top: -30px;
-  margin-left: -30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  height: 100%;
   display: flex;
-  flex-direction: column;
 }
 
-.book-list-scroll {
-  overflow-y: auto;
-  flex-grow: 1;
-}
 
-.book-list-container h2 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
 
 .styled-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 600px;
 }
 
 .styled-table th,
@@ -230,7 +212,6 @@ a{
   min-width: 400px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 0 15px rgba(0,0,0,0.05);
 }
 
 .user-table thead {
@@ -323,7 +304,7 @@ a{
   margin-right: -5px;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  max-width: 600px;
+  max-width: 300px;
 }
 
 .add-user-section h2 {
