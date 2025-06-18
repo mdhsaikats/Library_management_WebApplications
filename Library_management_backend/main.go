@@ -245,6 +245,12 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
+func searchBooks(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+}
+
+// get_books handler returns all books in the database as JSON
 func get_books(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
 
@@ -253,48 +259,46 @@ func get_books(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	fmt.Println("Get books endpoint hit")
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.Query("SELECT title, author, isbn, published_year, genre FROM books")
+	rows, err := db.Query("SELECT book_id, title, author, isbn, published_year, genre FROM books")
 	if err != nil {
 		http.Error(w, "Error fetching books", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var books []map[string]interface{}
+	type Book struct {
+		BookID        int    `json:"book_id"`
+		Title         string `json:"title"`
+		Author        string `json:"author"`
+		ISBN          string `json:"isbn"`
+		PublishedYear int    `json:"published_year"`
+		Genre         string `json:"genre"`
+	}
+
+	var books []Book
 
 	for rows.Next() {
-		var title, author, isbn, genre string
-		var publishedYear int
-
-		if err := rows.Scan(&title, &author, &isbn, &publishedYear, &genre); err != nil {
-			http.Error(w, "Error scanning row", http.StatusInternalServerError)
+		var book Book
+		err := rows.Scan(&book.BookID, &book.Title, &book.Author, &book.ISBN, &book.PublishedYear, &book.Genre)
+		if err != nil {
+			http.Error(w, "Error scanning book", http.StatusInternalServerError)
 			return
-		}
-
-		book := map[string]interface{}{
-			"title":          title,
-			"author":         author,
-			"isbn":           isbn,
-			"published_year": publishedYear,
-			"genre":          genre,
 		}
 		books = append(books, book)
 	}
 
 	if err := rows.Err(); err != nil {
-		http.Error(w, "Error reading rows", http.StatusInternalServerError)
+		http.Error(w, "Row iteration error", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(books)
+	err = json.NewEncoder(w).Encode(books)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 func addUser(w http.ResponseWriter, r *http.Request) {
@@ -487,6 +491,7 @@ func main() {
 	http.HandleFunc("/get_users", getUsers)
 	http.HandleFunc("/check-user", checkUser)
 	http.HandleFunc("/get_admin", getAdmin)
+	http.HandleFunc("/search_books", searchBooks)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
