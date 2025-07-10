@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const userTableBody = document.querySelector('.user-table tbody');
-  const userForm = document.querySelector('.user-form');
+  const userTableBody = document.querySelector('#users-section tbody');
+  const userForm = document.querySelector('form');
 
   // 🔄 1. Fetch and display users
   async function loadUsers() {
@@ -12,19 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       userTableBody.innerHTML = ''; // Clear table
 
-      users.forEach(user => {
+      users.forEach((user, index) => {
         const row = document.createElement('tr');
+        row.className = `border-b hover:bg-cyan-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`;
         row.innerHTML = `
-          <td>${user.user_id}</td>
-          <td>${user.name}</td>
-          <td>${user.email}</td>
-          <td>${user.phone}</td>
+          <td class="py-3 px-4">${user.user_id}</td>
+          <td class="py-3 px-4">${user.name}</td>
+          <td class="py-3 px-4">${user.email}</td>
+          <td class="py-3 px-4">${user.phone}</td>
         `;
         userTableBody.appendChild(row);
       });
     } catch (err) {
       console.error('Error loading users:', err);
-      userTableBody.innerHTML = '<tr><td colspan="4">Failed to load users</td></tr>';
+      userTableBody.innerHTML = '<tr><td colspan="4" class="py-4 px-4 text-center text-red-500">Failed to load users</td></tr>';
     }
   }
 

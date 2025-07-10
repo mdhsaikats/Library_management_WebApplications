@@ -4,72 +4,77 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Books - Library Management System</title>
-  <link rel="stylesheet" href="main.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
 
     <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;" alt="Library Logo"></h2>
-      <ul>
-        <a href="main.html"><li>Dashboard</li></a>
-        <a href="books.html"><li class="active">Books</li></a>
-        <a href="user.html"><li>Members</li></a>
-        <a href="borrow.html"><li>Borrow</li></a>
-        <li>Return</li>
-        <li>Transactions</li>
-        <li>Settings</li>
+    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
+      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png" alt="Library Logo"></h2>
+      <ul class="list-none p-0">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
+        <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Borrow</li></a>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
     <!-- Add Book Form -->
-    <section class="book-add-section">
-      <h2><img class="icon" src="asset/library.png" alt="Add Book Icon"> Add Book</h2>
-      <form class="book-add-form">
-        <div class="book-add-group">
-          <label for="add-title">Title</label>
-          <input type="text" id="add-title" name="title" placeholder="Book title" required>
+    <section class="bg-white p-8 m-8 rounded-lg shadow-lg max-w-lg">
+      <h2 class="text-slate-800 mb-6 text-xl font-semibold flex items-center gap-2">
+        <img class="w-12 h-12" src="asset/library.png" alt="Add Book Icon"> Add Book
+      </h2>
+      <form class="flex flex-col space-y-4">
+        <div class="flex flex-col">
+          <label for="add-title" class="mb-2 font-semibold text-gray-700">Title</label>
+          <input type="text" id="add-title" name="title" placeholder="Book title" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <div class="book-add-group">
-          <label for="add-author">Author</label>
-          <input type="text" id="add-author" name="author" placeholder="Author name" required>
+        <div class="flex flex-col">
+          <label for="add-author" class="mb-2 font-semibold text-gray-700">Author</label>
+          <input type="text" id="add-author" name="author" placeholder="Author name" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <div class="book-add-group">
-          <label for="add-isbn">ISBN</label>
-          <input type="text" id="add-isbn" name="isbn" placeholder="ISBN number" required>
+        <div class="flex flex-col">
+          <label for="add-isbn" class="mb-2 font-semibold text-gray-700">ISBN</label>
+          <input type="text" id="add-isbn" name="isbn" placeholder="ISBN number" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <div class="book-add-group">
-          <label for="add-published-year">Published Year</label>
-          <input type="number" id="add-published_year" name="published_year" placeholder="Published year" required>
+        <div class="flex flex-col">
+          <label for="add-published-year" class="mb-2 font-semibold text-gray-700">Published Year</label>
+          <input type="number" id="add-published_year" name="published_year" placeholder="Published year" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <div class="book-add-group">
-          <label for="add-genre">Genre</label>
-          <input type="text" id="add-genre" name="genre" placeholder="e.g. Fiction, History" required>
+        <div class="flex flex-col">
+          <label for="add-genre" class="mb-2 font-semibold text-gray-700">Genre</label>
+          <input type="text" id="add-genre" name="genre" placeholder="e.g. Fiction, History" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <button type="submit" class="book-add-button">Add Book</button>
+        <button type="submit" class="py-3 bg-cyan-600 text-white border-none rounded-md font-bold cursor-pointer hover:bg-cyan-700 transition-colors duration-200">Add Book</button>
       </form>
     </section>
 
     <!-- Book List Table -->
-<main class="content-section" id="books-section">
-  <h2 class="section-title">
-    <img class="icon" src="asset/books.png" alt="Books Icon"> Books List
+<main class="flex-1 p-8 bg-white m-8 rounded-lg shadow-lg" id="books-section">
+  <h2 class="mb-6 text-xl font-semibold text-slate-800 flex items-center gap-2">
+    <img class="w-12 h-12" src="asset/books.png" alt="Books Icon"> Books List
   </h2>
-  <table class="styled-table">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>ISBN</th>
-        <th>Published Year</th>
-        <th>Genre</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Book data will be dynamically inserted here by books.js -->
-    </tbody>
-  </table>
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse text-sm min-w-96 rounded-lg overflow-hidden">
+      <thead class="bg-green-400 text-white text-left">
+        <tr>
+          <th class="py-3 px-4">Title</th>
+          <th class="py-3 px-4">Author</th>
+          <th class="py-3 px-4">ISBN</th>
+          <th class="py-3 px-4">Published Year</th>
+          <th class="py-3 px-4">Genre</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm">
+        <!-- Book data will be dynamically inserted here by books.js -->
+      </tbody>
+    </table>
+  </div>
+</main>
 
   </div>
 

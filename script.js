@@ -7,15 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (switchToRegister) {
     switchToRegister.addEventListener("click", function () {
-      document.getElementById("signin").classList.remove("active");
-      document.getElementById("register").classList.add("active");
+      document.getElementById("signin").classList.remove("flex");
+      document.getElementById("signin").classList.add("hidden");
+      document.getElementById("register").classList.remove("hidden");
+      document.getElementById("register").classList.add("flex");
     });
   }
 
   if (switchToSignin) {
     switchToSignin.addEventListener("click", function () {
-      document.getElementById("register").classList.remove("active");
-      document.getElementById("signin").classList.add("active");
+      document.getElementById("register").classList.remove("flex");
+      document.getElementById("register").classList.add("hidden");
+      document.getElementById("signin").classList.remove("hidden");
+      document.getElementById("signin").classList.add("flex");
     });
   }
 

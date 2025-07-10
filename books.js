@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const booksTableBody = document.querySelector('#books-section tbody');
-  const bookForm = document.querySelector('.book-add-form');
+  const bookForm = document.querySelector('form');
 
   // 🔄 1. Fetch and display books
   async function loadBooks() {
@@ -12,20 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
       booksTableBody.innerHTML = ''; // Clear table
 
-      books.forEach(book => {
+      books.forEach((book, index) => {
         const row = document.createElement('tr');
+        row.className = `border-b hover:bg-cyan-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`;
         row.innerHTML = `
-          <td>${book.title}</td>
-          <td>${book.author}</td>
-          <td>${book.isbn}</td>
-          <td>${book.published_year}</td>
-          <td>${book.genre}</td>
+          <td class="py-3 px-4">${book.title}</td>
+          <td class="py-3 px-4">${book.author}</td>
+          <td class="py-3 px-4">${book.isbn}</td>
+          <td class="py-3 px-4">${book.published_year}</td>
+          <td class="py-3 px-4">${book.genre}</td>
         `;
         booksTableBody.appendChild(row);
       });
     } catch (err) {
       console.error('Error loading books:', err);
-      booksTableBody.innerHTML = '<tr><td colspan="5">Failed to load books</td></tr>';
+      booksTableBody.innerHTML = '<tr><td colspan="5" class="py-4 px-4 text-center text-red-500">Failed to load books</td></tr>';
     }
   }
 

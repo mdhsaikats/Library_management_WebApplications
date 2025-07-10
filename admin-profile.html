@@ -4,34 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Library Management System</title>
-  <link rel="stylesheet" href="main.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <aside class="sidebar">
-      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
-      <ul>
-        <a href="main.html"><li class="active">Dashboard</li></a>
-        <a href="books.html"><li>Books</li></a>
-        <a href="user.html"><li class="nav-item">Members</li></a>
-       <a href="borrow.html"><li>Borrow</li></a> 
-        <li>Return</li>
-        <li>Transactions</li>
-        <li>Settings</li>
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
+    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
+      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="list-none p-0">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
+       <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Borrow</li></a> 
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
-    <div class="admin-profile-card">
-      <h2>
-        <img class="icon" src="asset/manager.png" style="width: 30px; height: 30px;" onclick="window.location.href='admin-profile.html'">
-        Admin Profile
-      </h2>
-      <div class="profile-details">
-        <div class="detail detail-name"><strong>Name:</strong> Loading...</div>
-        <div class="detail detail-position"><strong>Position:</strong> Loading...</div>
-        <div class="detail detail-age"><strong>Age:</strong> Loading...</div>
-        <div class="detail detail-email"><strong>Email:</strong> Loading...</div>
-        <div class="detail detail-username"><strong>Username:</strong> Loading...</div>
+    <div class="flex-1 flex justify-center items-center p-8">
+      <div class="max-w-4xl w-full bg-white p-8 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-blue-500 flex items-center gap-3">
+          <img class="w-8 h-8 cursor-pointer" src="asset/manager.png" onclick="window.location.href='admin-profile.html'">
+          Admin Profile
+        </h2>
+        <div class="flex flex-col space-y-4">
+          <div class="text-base text-gray-600 detail detail-name"><strong class="text-gray-800">Name:</strong> Loading...</div>
+          <div class="text-base text-gray-600 detail detail-position"><strong class="text-gray-800">Position:</strong> Loading...</div>
+          <div class="text-base text-gray-600 detail detail-age"><strong class="text-gray-800">Age:</strong> Loading...</div>
+          <div class="text-base text-gray-600 detail detail-email"><strong class="text-gray-800">Email:</strong> Loading...</div>
+          <div class="text-base text-gray-600 detail detail-username"><strong class="text-gray-800">Username:</strong> Loading...</div>
+        </div>
       </div>
     </div>
 

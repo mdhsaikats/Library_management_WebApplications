@@ -4,63 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User List - Library Management System</title>
-  <link rel="stylesheet" href="main.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="library-container">
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
     
     <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
-      <ul>
-        <a href="main.html"><li>Dashboard</li></a>
-        <a href="books.html"><li>Books</li></a>
-        <a href="user.html" ><li class="active">Members</li></a>
-        <a href="borrow.html"><li>Borrow</li></a>
-        <li>Return</li>
-        <li>Transactions</li>
-        <li>Settings</li>
+    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
+      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="list-none p-0">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Members</li></a>
+        <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Borrow</li></a>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
     <!-- Add New Member Form -->
-    <section class="add-user-section">
-      <h2><img class="icon" src="asset/group.png" alt="Group Icon"> Add New Member</h2>
-      <form class="user-form">
-        <div class="form-group">
-          <label for="full-name">Full Name</label>
-          <input type="text" id="full-name" name="fullName" required />
+    <section class="bg-white p-8 m-8 rounded-lg shadow-lg max-w-sm">
+      <h2 class="text-slate-800 mb-6 text-xl font-semibold flex items-center gap-2">
+        <img class="w-12 h-12" src="asset/group.png" alt="Group Icon"> Add New Member
+      </h2>
+      <form class="flex flex-col space-y-4">
+        <div class="flex flex-col">
+          <label for="full-name" class="mb-2 font-semibold text-gray-700">Full Name</label>
+          <input type="text" id="full-name" name="fullName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
         </div>
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" required />
+        <div class="flex flex-col">
+          <label for="email" class="mb-2 font-semibold text-gray-700">Email Address</label>
+          <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
         </div>
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" required />
+        <div class="flex flex-col">
+          <label for="phone" class="mb-2 font-semibold text-gray-700">Phone Number</label>
+          <input type="tel" id="phone" name="phone" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
         </div>
-        <button type="submit" class="submit-user-btn">Add Member</button>
+        <button type="submit" class="bg-green-400 text-white border-none py-3 px-6 rounded-md cursor-pointer mt-4 font-bold hover:bg-green-500 transition-colors duration-200">Add Member</button>
       </form>
     </section>
 
     <!-- User List Table -->
-    <main class="content-section" id="users-section">
-      <h2 class="section-title">
-        <img class="icon" src="asset/user.png" alt="User Icon"> User List
+    <main class="flex-1 p-8 bg-white m-8 rounded-lg shadow-lg" id="users-section">
+      <h2 class="mb-6 text-xl font-semibold text-slate-800 flex items-center gap-2">
+        <img class="w-12 h-12" src="asset/user.png" alt="User Icon"> User List
       </h2>
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- User data will be dynamically inserted here by user.js -->
-        </tbody>
-      </table>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm min-w-96 rounded-lg overflow-hidden">
+          <thead class="bg-green-400 text-white text-left">
+            <tr>
+              <th class="py-3 px-4">ID</th>
+              <th class="py-3 px-4">Name</th>
+              <th class="py-3 px-4">Email</th>
+              <th class="py-3 px-4">Phone</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            <!-- User data will be dynamically inserted here by user.js -->
+          </tbody>
+        </table>
+      </div>
     </main>
   </div>
 

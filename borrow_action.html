@@ -4,32 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Library Management System</title>
-  <link rel="stylesheet" href="main.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <aside class="sidebar">
-      <h2><img class="icon" src="asset/librarymain.png" style="width: 80px; height: 80px;"></h2>
-      <ul>
-        <a href="main.html"><li>Dashboard</li></a>
-        <a href="books.html"><li>Books</li></a>
-        <a href="user.html"><li class="nav-item" >Members</li></a>
-        <a href="borrow.html"><li class="active" >Borrow</li></a> 
-        <li>Return</li>
-        <li>Transactions</li>
-        <li>Settings</li>
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
+    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
+      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="list-none p-0">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
+        <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Borrow</li></a> 
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
-    <div class="borrow-container">
-      <h2><img src="asset/borrow.png" style="width: 40px; height: 40px;"> Borrow a Book</h2>
+    <div class="flex-1 p-8 bg-white m-8 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold mb-8 text-gray-800 flex items-center gap-2">
+        <img src="asset/borrow.png" class="w-10 h-10"> Borrow a Book
+      </h2>
 
-      <div class="search-bar">
-        <input type="text" placeholder="Search by title, author, or ISBN..." />
-        <button>Search</button>
+      <div class="flex mb-8">
+        <input type="text" placeholder="Search by title, author, or ISBN..." class="flex-1 px-4 py-3 text-base border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button class="px-5 py-3 bg-blue-500 text-white border-none text-base cursor-pointer rounded-r-lg hover:bg-blue-600 transition-colors duration-200">Search</button>
       </div>
 
-      <div class="book-results">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="book-results">
         <!-- Search results will be rendered here by JS -->
       </div>
     </div>
