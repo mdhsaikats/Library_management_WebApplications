@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.querySelector('input[type="text"]');
   const searchButton = document.querySelector('button');
   const bookResults = document.getElementById('book-results');
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAvailable = book.status === 'available';
     
     return `
-      <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 transition-shadow duration-200 hover:shadow-lg">
+      <div class="bg-gray-50 p-5 mb-4 rounded-lg border border-gray-200 transition-shadow duration-200 hover:shadow-lg max-h-40 overflow-hidden">
         <h3 class="mt-0 mb-2 text-lg font-semibold text-gray-800">${book.title}</h3>
         <p class="text-gray-600 mb-1"><strong>Author:</strong> ${book.author}</p>
         <p class="text-gray-600 mb-1"><strong>ISBN:</strong> ${book.isbn}</p>
@@ -108,4 +108,26 @@ document.addEventListener('DOMContentLoaded', () => {
       performSearch();
     }
   });
+
+  // Get user phone from URL
+  const params = new URLSearchParams(window.location.search);
+  const userPhone = params.get('user');
+  if (userPhone) {
+    try {
+      // Fetch all users
+      const res = await fetch('http://localhost:8080/get_users');
+      if (!res.ok) throw new Error();
+      const users = await res.json();
+      const user = users.find(u => u.phone === userPhone);
+      if (user) {
+        document.getElementById('user-name').textContent = user.name;
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-phone').textContent = user.phone;
+        document.getElementById('user-info').style.display = 'block';
+        // window.currentUserId = user.user_id; // Save for borrow actions
+      }
+    } catch (err) {
+      document.getElementById('user-info').style.display = 'none';
+    }
+  }
 });

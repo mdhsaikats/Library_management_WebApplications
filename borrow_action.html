@@ -31,8 +31,15 @@
         <button class="px-5 py-3 bg-blue-500 text-white border-none text-base cursor-pointer rounded-r-lg hover:bg-blue-600 transition-colors duration-200">Search</button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 flex-1 min-h-0 overflow-auto" id="book-results">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 flex-1 min-h-0 overflow-auto max-h-64" id="book-results">
         <!-- Search results will be rendered here by JS -->
+      </div>
+
+      <div id="user-info" class="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-300 hidden">
+        <h3 class="text-lg font-semibold mb-2 text-gray-700">User Information</h3>
+        <p class="text-gray-700"><strong>Name:</strong> <span id="user-name"></span></p>
+        <p class="text-gray-700"><strong>Email:</strong> <span id="user-email"></span></p>
+        <p class="text-gray-700"><strong>Phone:</strong> <span id="user-phone"></span></p>
       </div>
     </div>
   </div>
