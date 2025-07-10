@@ -1,0 +1,13 @@
+{
+  "name": "library-management-webapp",
+  "version": "1.0.0",
+  "description": "Library Management Web Application",
+  "scripts": {
+    "build-css": "tailwindcss -i ./src/input.css -o ./css/output.css --minify",
+    "dev-css": "tailwindcss -i ./src/input.css -o ./css/output.css --watch",
+    "start-backend": "cd Library_management_backend && go run main.go"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

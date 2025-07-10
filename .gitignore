@@ -1,2 +1,19 @@
+# Dependencies
 node_modules/
+npm-debug.log*
+
+# Environment variables
 .env
+
+# Generated files (rebuild with npm run build-css)
+css/output.css
+
+# IDE
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,44 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Backend Server",
+			"type": "shell",
+			"command": "go",
+			"args": [
+				"run",
+				"main.go"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/Library_management_backend"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Watch CSS (Development)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev-css"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Build CSS (Production)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build-css"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

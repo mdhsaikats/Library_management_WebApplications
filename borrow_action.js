@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
               : 'bg-gray-400 text-white cursor-not-allowed'
           }"
           ${!isAvailable ? 'disabled' : ''}
-          onclick="${isAvailable ? `borrowBook('${book.id}')` : ''}"
+          onclick="${isAvailable ? `borrowBook('${book.id}', '${book.available_copy_id || ''}')` : ''}"
         >
           ${isAvailable ? 'Borrow Book' : 'Not Available'}
         </button>
@@ -32,37 +32,72 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Function to handle book borrowing
-  window.borrowBook = function(bookId) {
-    // Add your borrow logic here
-    alert(`Borrowing book with ID: ${bookId}`);
+  window.borrowBook = async function(bookId, copyId) {
+    try {
+      // Get user ID from localStorage or session
+      const userId = localStorage.getItem('userId') || 1; // Default to 1 if not found
+      
+      if (!copyId) {
+        alert('No available copy found for this book.');
+        return;
+      }
+      
+      const response = await fetch('http://localhost:8080/borrow_book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          book_id: parseInt(bookId),
+          copy_id: parseInt(copyId)
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Success: ${result.message}`);
+        // Refresh search results to update availability
+        performSearch();
+      } else {
+        const error = await response.text();
+        alert(`Error borrowing book: ${error}`);
+      }
+    } catch (error) {
+      console.error('Error borrowing book:', error);
+      alert('Error borrowing book. Please try again.');
+    }
   };
 
   // Search functionality
-  function performSearch() {
+  async function performSearch() {
     const searchTerm = searchInput.value.trim();
     if (!searchTerm) {
       bookResults.innerHTML = '<p class="text-gray-500 text-center col-span-full">Please enter a search term</p>';
       return;
     }
 
-    // Mock search results - replace with actual API call
-    const mockBooks = [
-      { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '9780743273565', genre: 'Fiction', status: 'available' },
-      { id: 2, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '9780446310789', genre: 'Fiction', status: 'unavailable' },
-      { id: 3, title: '1984', author: 'George Orwell', isbn: '9780451524935', genre: 'Dystopian', status: 'available' }
-    ];
+    try {
+      // Show loading state
+      bookResults.innerHTML = '<p class="text-gray-500 text-center col-span-full">Searching...</p>';
+      
+      // Call the actual API endpoint
+      const response = await fetch(`http://localhost:8080/search_books?query=${encodeURIComponent(searchTerm)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const books = await response.json();
 
-    // Filter books based on search term
-    const filteredBooks = mockBooks.filter(book => 
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.isbn.includes(searchTerm)
-    );
-
-    if (filteredBooks.length === 0) {
-      bookResults.innerHTML = '<p class="text-gray-500 text-center col-span-full">No books found matching your search</p>';
-    } else {
-      bookResults.innerHTML = filteredBooks.map(book => createBookCard(book)).join('');
+      if (books.length === 0) {
+        bookResults.innerHTML = '<p class="text-gray-500 text-center col-span-full">No books found matching your search</p>';
+      } else {
+        bookResults.innerHTML = books.map(book => createBookCard(book)).join('');
+      }
+    } catch (error) {
+      console.error('Error searching books:', error);
+      bookResults.innerHTML = '<p class="text-red-500 text-center col-span-full">Error searching books. Please try again.</p>';
     }
   }
 

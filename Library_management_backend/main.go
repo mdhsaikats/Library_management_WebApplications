@@ -247,7 +247,63 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 
 func searchBooks(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
-
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Error(w, "Query parameter is required", http.StatusBadRequest)
+		return
+	}
+	// Join books with bookcopies and aggregate available copies
+	rows, err := db.Query(`
+		SELECT b.book_id, b.title, b.author, b.isbn, b.published_year, b.genre,
+		  COALESCE(MIN(CASE WHEN bc.status = 'available' THEN bc.copy_id END), 0) AS available_copy_id,
+		  COUNT(CASE WHEN bc.status = 'available' THEN 1 END) AS available_count
+		FROM books b
+		LEFT JOIN bookcopies bc ON b.book_id = bc.book_id
+		WHERE b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ? OR b.genre LIKE ?
+		GROUP BY b.book_id, b.title, b.author, b.isbn, b.published_year, b.genre
+	`, "%"+query+"%", "%"+query+"%", "%"+query+"%", "%"+query+"%")
+	if err != nil {
+		http.Error(w, "Error fetching books", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	type Book struct {
+		BookID          int    `json:"book_id"`
+		Title           string `json:"title"`
+		Author          string `json:"author"`
+		ISBN            string `json:"isbn"`
+		PublishedYear   int    `json:"published_year"`
+		Genre           string `json:"genre"`
+		Status          string `json:"status"`
+		AvailableCopyID int    `json:"available_copy_id"`
+	}
+	var books []Book
+	for rows.Next() {
+		var book Book
+		var availableCount int
+		if err := rows.Scan(&book.BookID, &book.Title, &book.Author, &book.ISBN, &book.PublishedYear, &book.Genre, &book.AvailableCopyID, &availableCount); err != nil {
+			http.Error(w, "Error scanning book", http.StatusInternalServerError)
+			return
+		}
+		if availableCount > 0 && book.AvailableCopyID != 0 {
+			book.Status = "available"
+		} else {
+			book.Status = "unavailable"
+			book.AvailableCopyID = 0
+		}
+		books = append(books, book)
+	}
+	if err := rows.Err(); err != nil {
+		http.Error(w, "Row iteration error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(books)
 }
 
 // get_books handler returns all books in the database as JSON
@@ -463,9 +519,54 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(admin)
 }
 
+func borrowBook(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		UserID int `json:"user_id"`
+		CopyID int `json:"copy_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Insert into loans
+	query := "INSERT INTO loans (user_id, copy_id) VALUES (?, ?)"
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		http.Error(w, "Error preparing statement", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(request.UserID, request.CopyID)
+	if err != nil {
+		http.Error(w, "Error executing insert", http.StatusInternalServerError)
+		return
+	}
+
+	// Mark the copy as borrowed
+	_, err = db.Exec("UPDATE bookcopies SET status = 'borrowed' WHERE copy_id = ?", request.CopyID)
+	if err != nil {
+		http.Error(w, "Error updating book copy status", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Book borrowed successfully"})
+}
+
 func main() {
 	var err error
-	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/library_management")
+	db, err = sql.Open("mysql", "root:29112003@tcp(127.0.0.1:3306)/library_management")
 	if err != nil {
 		fmt.Println("Error connecting to the database:", err)
 		return
@@ -492,6 +593,7 @@ func main() {
 	http.HandleFunc("/check-user", checkUser)
 	http.HandleFunc("/get_admin", getAdmin)
 	http.HandleFunc("/search_books", searchBooks)
+	http.HandleFunc("/borrow_book", borrowBook)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", nil)
