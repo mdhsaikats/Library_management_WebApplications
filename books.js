@@ -21,14 +21,41 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="py-3 px-4">${book.isbn}</td>
           <td class="py-3 px-4">${book.published_year}</td>
           <td class="py-3 px-4">${book.genre}</td>
+          <td class="py-3 px-4 text-center">${book.copy_count || 0}</td>
+          <td class="py-3 px-4 text-center">
+            <button class="add-copy-btn bg-green-500 hover:bg-green-600 text-white rounded-lg w-8 h-8 flex items-center justify-center text-lg font-bold" title="Add Copy" data-book-id="${book.book_id}">+</button>
+          </td>
         `;
         booksTableBody.appendChild(row);
       });
     } catch (err) {
       console.error('Error loading books:', err);
-      booksTableBody.innerHTML = '<tr><td colspan="5" class="py-4 px-4 text-center text-red-500">Failed to load books</td></tr>';
+      booksTableBody.innerHTML = '<tr><td colspan="7" class="py-4 px-4 text-center text-red-500">Failed to load books</td></tr>';
     }
   }
+
+  // Handle add copy button click
+  booksTableBody.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('add-copy-btn')) {
+      const bookId = e.target.getAttribute('data-book-id');
+      if (!bookId) return;
+      // Optionally, prompt for number of copies
+      // const count = parseInt(prompt('How many copies to add?', '1')) || 1;
+      const count = 1;
+      try {
+        const response = await fetch('http://localhost:8080/add_book_copies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ book_id: parseInt(bookId), count })
+        });
+        if (!response.ok) throw new Error(await response.text());
+        alert('Book copy added!');
+        loadBooks();
+      } catch (err) {
+        alert('Failed to add book copy. ' + err.message);
+      }
+    }
+  });
 
   // 🔄 2. Add new book
   bookForm.addEventListener('submit', async (e) => {

@@ -6,20 +6,29 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
 
-func enableCORS(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-ID")
+// CORS middleware for chi
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-ID")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func dashboard(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -65,8 +74,6 @@ func dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func signin(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -114,8 +121,6 @@ func signin(w http.ResponseWriter, r *http.Request) {
 }
 
 func registration(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -159,8 +164,6 @@ func registration(w http.ResponseWriter, r *http.Request) {
 }
 
 func add_books(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -195,17 +198,30 @@ func add_books(w http.ResponseWriter, r *http.Request) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(book.Title, book.Author, book.ISBN, book.Published_Year, book.Genre)
+	res, err := stmt.Exec(book.Title, book.Author, book.ISBN, book.Published_Year, book.Genre)
 	if err != nil {
 		http.Error(w, "Error executing insert", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"message": "Book added successfully"})
+	// Get the new book_id
+	bookID, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Error getting new book ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Insert the first copy for this book
+	_, err = db.Exec("INSERT INTO bookcopies (book_id, status) VALUES (?, 'available')", bookID)
+	if err != nil {
+		http.Error(w, "Error creating initial book copy", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Book added successfully with 1 copy"})
 }
 
 func topBooks(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -218,7 +234,7 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := db.Query(`
-        SELECT b.title, COUNT(*) AS borrow_count
+		SELECT b.title, COUNT(*) AS borrow_count
 	FROM loans l
 	JOIN bookcopies bc ON l.copy_id = bc.copy_id
 	JOIN books b ON bc.book_id = b.book_id
@@ -226,7 +242,7 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 	ORDER BY borrow_count DESC
 	LIMIT 5;
 
-    `)
+	`)
 	if err != nil {
 		http.Error(w, "Error fetching top books", http.StatusInternalServerError)
 		return
@@ -246,7 +262,6 @@ func topBooks(w http.ResponseWriter, r *http.Request) {
 }
 
 func searchBooks(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -308,8 +323,6 @@ func searchBooks(w http.ResponseWriter, r *http.Request) {
 
 // get_books handler returns all books in the database as JSON
 func get_books(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -317,7 +330,12 @@ func get_books(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.Query("SELECT book_id, title, author, isbn, published_year, genre FROM books")
+	rows, err := db.Query(`
+			   SELECT b.book_id, b.title, b.author, b.isbn, b.published_year, b.genre, COUNT(bc.copy_id) AS copy_count
+			   FROM books b
+			   LEFT JOIN bookcopies bc ON b.book_id = bc.book_id
+			   GROUP BY b.book_id, b.title, b.author, b.isbn, b.published_year, b.genre
+	   `)
 	if err != nil {
 		http.Error(w, "Error fetching books", http.StatusInternalServerError)
 		return
@@ -331,13 +349,14 @@ func get_books(w http.ResponseWriter, r *http.Request) {
 		ISBN          string `json:"isbn"`
 		PublishedYear int    `json:"published_year"`
 		Genre         string `json:"genre"`
+		CopyCount     int    `json:"copy_count"`
 	}
 
 	var books []Book
 
 	for rows.Next() {
 		var book Book
-		err := rows.Scan(&book.BookID, &book.Title, &book.Author, &book.ISBN, &book.PublishedYear, &book.Genre)
+		err := rows.Scan(&book.BookID, &book.Title, &book.Author, &book.ISBN, &book.PublishedYear, &book.Genre, &book.CopyCount)
 		if err != nil {
 			http.Error(w, "Error scanning book", http.StatusInternalServerError)
 			return
@@ -358,8 +377,6 @@ func get_books(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUser(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -396,8 +413,6 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -445,7 +460,6 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkUser(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -458,30 +472,32 @@ func checkUser(w http.ResponseWriter, r *http.Request) {
 	var reqBody RequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		fmt.Println("[checkUser] Invalid request body:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	if reqBody.Phone == "" {
+		fmt.Println("[checkUser] Phone number is required")
 		http.Error(w, "Phone number is required", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("Check user endpoint hit with phone:", reqBody.Phone)
+	fmt.Println("[checkUser] Endpoint hit with phone:", reqBody.Phone)
 
 	var exists bool
 	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE phone=?)", reqBody.Phone).Scan(&exists)
 	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		fmt.Println("[checkUser] DB error:", err)
+		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	fmt.Println("[checkUser] Exists:", exists)
 	json.NewEncoder(w).Encode(map[string]bool{"exists": exists})
 }
 
 func getAdmin(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -520,8 +536,6 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 func borrowBook(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -536,6 +550,26 @@ func borrowBook(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Get the book_id for the requested copy
+	var bookID int
+	err := db.QueryRow("SELECT book_id FROM bookcopies WHERE copy_id = ?", request.CopyID).Scan(&bookID)
+	if err != nil {
+		http.Error(w, "Invalid book copy", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the user already has an active loan for this book
+	var count int
+	err = db.QueryRow(`SELECT COUNT(*) FROM loans l JOIN bookcopies bc ON l.copy_id = bc.copy_id WHERE l.user_id = ? AND bc.book_id = ? AND l.returned_on IS NULL`, request.UserID, bookID).Scan(&count)
+	if err != nil {
+		http.Error(w, "Error checking existing loans", http.StatusInternalServerError)
+		return
+	}
+	if count > 0 {
+		http.Error(w, "User already has an active loan for this book", http.StatusBadRequest)
 		return
 	}
 
@@ -564,6 +598,122 @@ func borrowBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Book borrowed successfully"})
 }
 
+// POST /get_loans { phone }
+func getLoans(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	var request struct {
+		Phone string `json:"phone"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.Phone == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+	// Check if the user exists
+	var userID int
+	err := db.QueryRow("SELECT user_id FROM users WHERE phone = ?", request.Phone).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking user", http.StatusInternalServerError)
+		return
+	}
+	// Get the user's active loans (with copy_id, isbn, title, author)
+	type Loan struct {
+		CopyID int    `json:"copy_id"`
+		ISBN   string `json:"isbn"`
+		Title  string `json:"title"`
+		Author string `json:"author"`
+	}
+	var loans []Loan
+	rows, err := db.Query(`SELECT l.copy_id, b.isbn, b.title, b.author FROM loans l JOIN bookcopies bc ON l.copy_id = bc.copy_id JOIN books b ON bc.book_id = b.book_id WHERE l.user_id = ? AND l.returned_on IS NULL`, userID)
+	if err != nil {
+		http.Error(w, "Error fetching loans", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var loan Loan
+		if err := rows.Scan(&loan.CopyID, &loan.ISBN, &loan.Title, &loan.Author); err != nil {
+			http.Error(w, "Error scanning loan", http.StatusInternalServerError)
+			return
+		}
+		loans = append(loans, loan)
+	}
+	json.NewEncoder(w).Encode(loans)
+}
+
+// POST /return { userId, copyId }
+func returnBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	var request struct {
+		UserID int `json:"userId"`
+		CopyID int `json:"copyId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.UserID == 0 || request.CopyID == 0 {
+		http.Error(w, "User ID and Copy ID are required", http.StatusBadRequest)
+		return
+	}
+	// Update the loan record to set returned_on
+	query := "UPDATE loans SET returned_on = NOW() WHERE user_id = ? AND copy_id = ? AND returned_on IS NULL"
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		http.Error(w, "Error preparing statement", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(request.UserID, request.CopyID)
+	if err != nil {
+		http.Error(w, "Error executing update", http.StatusInternalServerError)
+		return
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		http.Error(w, "No active loan found for this user and copy", http.StatusNotFound)
+		return
+	}
+	// Mark the copy as available
+	_, err = db.Exec("UPDATE bookcopies SET status = 'available' WHERE copy_id = ?", request.CopyID)
+	if err != nil {
+		http.Error(w, "Error updating book copy status", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{"message": "Book returned successfully"})
+}
+
+func addBookCopies(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		BookID int `json:"book_id"`
+		Count  int `json:"count"`
+	}
+	json.NewDecoder(r.Body).Decode(&req)
+	for i := 0; i < req.Count; i++ {
+		_, err := db.Exec("INSERT INTO bookcopies (book_id, status) VALUES (?, 'available')", req.BookID)
+		if err != nil {
+			http.Error(w, "Failed to add book copy", 500)
+			return
+		}
+	}
+	w.Write([]byte(`{"message":"Book copies added successfully"}`))
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:29112003@tcp(127.0.0.1:3306)/library_management")
@@ -578,25 +728,28 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Library backend is live!"))
-	})
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(corsMiddleware) // <-- Add CORS middleware globally
 
-	http.HandleFunc("/dashboard", dashboard)
-	http.HandleFunc("/signin", signin)
-	http.HandleFunc("/registration", registration)
-	http.HandleFunc("/add_books", add_books)
-	http.HandleFunc("/top-books", topBooks)
-	http.HandleFunc("/get_books", get_books)
-	http.HandleFunc("/add_user", addUser)
-	http.HandleFunc("/get_users", getUsers)
-	http.HandleFunc("/check-user", checkUser)
-	http.HandleFunc("/get_admin", getAdmin)
-	http.HandleFunc("/search_books", searchBooks)
-	http.HandleFunc("/borrow_book", borrowBook)
+	r.Get("/dashboard", dashboard)
+	r.Post("/signin", signin)
+	r.Post("/registration", registration)
+	r.Post("/add_books", add_books)
+	r.Get("/top-books", topBooks)
+	r.Get("/get_books", get_books)
+	r.Post("/add_user", addUser)
+	r.Get("/get_users", getUsers)
+	r.Post("/check-user", checkUser)
+	r.Get("/get_admin", getAdmin)
+	r.Get("/search_books", searchBooks)
+	r.Post("/borrow_book", borrowBook)
+	r.Post("/return", returnBook)
+	r.Post("/get_loans", getLoans)
+	r.Post("/add_book_copies", addBookCopies)
 
 	fmt.Println("Server started at :8080")
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", r)
 	if err != nil {
 		panic(err)
 	}

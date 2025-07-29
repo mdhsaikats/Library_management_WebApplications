@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       // Get user ID from localStorage or session
       const userId = localStorage.getItem('userId') || 1; // Default to 1 if not found
-      
+
       if (!copyId) {
         alert('No available copy found for this book.');
         return;
       }
-      
+
       const response = await fetch('http://localhost:8080/borrow_book', {
         method: 'POST',
         headers: {
@@ -60,11 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Refresh search results to update availability
         performSearch();
       } else {
-        const error = await response.text();
-        alert(`Error borrowing book: ${error}`);
+        const errorText = await response.text();
+        console.error('Backend error borrowing book:', errorText);
+        alert(`Error borrowing book: ${errorText || response.statusText}`);
       }
     } catch (error) {
-      console.error('Error borrowing book:', error);
+      console.error('Error borrowing book (network or JS error):', error);
       alert('Error borrowing book. Please try again.');
     }
   };

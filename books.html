@@ -10,22 +10,22 @@
   <div class="flex h-screen">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
-      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png" alt="Library Logo"></h2>
-      <ul class="list-none p-0">
-        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Dashboard</li></a>
-        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Books</li></a>
-        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
-        <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Borrow</li></a>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
+    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png" alt="Library Logo"></h2>
+      <ul class="p-0 list-none">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
+        <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a>
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
     <!-- Add Book Form -->
-    <section class="bg-white p-8 m-8 rounded-lg shadow-lg max-w-lg">
-      <h2 class="text-slate-800 mb-6 text-xl font-semibold flex items-center gap-2">
+    <section class="max-w-lg p-8 m-8 bg-white rounded-lg shadow-lg">
+      <h2 class="flex items-center gap-2 mb-6 text-xl font-semibold text-slate-800">
         <img class="w-12 h-12" src="asset/library.png" alt="Add Book Icon"> Add Book
       </h2>
       <form class="flex flex-col space-y-4">
@@ -49,28 +49,31 @@
           <label for="add-genre" class="mb-2 font-semibold text-gray-700">Genre</label>
           <input type="text" id="add-genre" name="genre" placeholder="e.g. Fiction, History" required class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
         </div>
-        <button type="submit" class="py-3 bg-cyan-600 text-white border-none rounded-md font-bold cursor-pointer hover:bg-cyan-700 transition-colors duration-200">Add Book</button>
+        <button type="submit" class="py-3 font-bold text-white transition-colors duration-200 border-none rounded-md cursor-pointer bg-cyan-600 hover:bg-cyan-700">Add Book</button>
       </form>
     </section>
 
     <!-- Book List Table -->
-<main class="flex-1 p-8 bg-white m-8 rounded-lg shadow-lg" id="books-section">
-  <h2 class="mb-6 text-xl font-semibold text-slate-800 flex items-center gap-2">
+<main class="flex-1 p-8 m-8 bg-white rounded-lg shadow-lg" id="books-section">
+  <h2 class="flex items-center gap-2 mb-6 text-xl font-semibold text-slate-800">
     <img class="w-12 h-12" src="asset/books.png" alt="Books Icon"> Books List
   </h2>
   <div class="overflow-x-auto">
-    <table class="w-full border-collapse text-sm min-w-96 rounded-lg overflow-hidden">
-      <thead class="bg-green-400 text-white text-left">
+    <table class="w-full overflow-hidden text-sm border-collapse rounded-lg min-w-96">
+      <thead class="text-left text-white bg-green-400">
         <tr>
-          <th class="py-3 px-4">Title</th>
-          <th class="py-3 px-4">Author</th>
-          <th class="py-3 px-4">ISBN</th>
-          <th class="py-3 px-4">Published Year</th>
-          <th class="py-3 px-4">Genre</th>
+          <th class="px-4 py-3">Title</th>
+          <th class="px-4 py-3">Author</th>
+          <th class="px-4 py-3">ISBN</th>
+          <th class="px-4 py-3">Published Year</th>
+          <th class="px-4 py-3">Genre</th>
+          <th class="px-4 py-3">no of Copy</th>
+          <th class="px-4 py-3">Add Copy</th>
         </tr>
       </thead>
       <tbody class="text-sm">
         <!-- Book data will be dynamically inserted here by books.js -->
+        <!-- Each row will have a plus/add button for adding book copies -->
       </tbody>
     </table>
   </div>

@@ -8,56 +8,56 @@
 </head>
 <body class="m-0 font-sans bg-gray-50">
   <div class="flex h-screen">
-    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
-      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
-      <ul class="list-none p-0">
-        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Dashboard</li></a>
-        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Books</li></a>
-        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
-       <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Borrow</li></a> 
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
+    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="p-0 list-none">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
+       <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a> 
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li>
       </ul>
     </aside>
 
-    <main class="flex-1 p-8 flex flex-col">
-      <header class="flex justify-between items-center p-4">
+    <main class="flex flex-col flex-1 p-8">
+      <header class="flex items-center justify-between p-4">
   <h1 class="text-2xl font-bold text-gray-800">Welcome to the Library!</h1>
 
   <div class="flex items-center gap-4">
-    <button class="px-4 py-2 bg-red-500 text-white border-none rounded-md font-bold cursor-pointer hover:bg-red-600 transition-colors duration-200" onclick="window.location.href='index.html'">Logout</button>
-    <img class="w-10 h-10 cursor-pointer rounded-full" src="asset/profile-user.png" onclick="window.location.href='admin-profile.html'">
+    <button class="px-4 py-2 font-bold text-white transition-colors duration-200 bg-red-500 border-none rounded-md cursor-pointer hover:bg-red-600" onclick="window.location.href='index.html'">Logout</button>
+    <img class="w-10 h-10 rounded-full cursor-pointer" src="asset/profile-user.png" onclick="window.location.href='admin-profile.html'">
   </div>
 </header>
 
 
-      <section class="w-full grid grid-cols-2 gap-6 mt-8">
-        <div class="text-white p-6 rounded-lg shadow-lg bg-yellow-400">
+      <section class="grid w-full grid-cols-2 gap-6 mt-8">
+        <div class="p-6 text-white bg-yellow-400 rounded-lg shadow-lg">
           <h3 class="m-0 mb-4 text-lg font-semibold">Total Books</h3>
           <p id="totalBooks" class="text-xl">Loading...</p>
         </div>
-        <div class="text-white p-6 rounded-lg shadow-lg bg-green-400">
+        <div class="p-6 text-white bg-green-400 rounded-lg shadow-lg">
           <h3 class="m-0 mb-4 text-lg font-semibold">Members</h3>
           <p id="members" class="text-xl">Loading...</p>
         </div>
-        <div class="text-white p-6 rounded-lg shadow-lg bg-red-500">
+        <div class="p-6 text-white bg-red-500 rounded-lg shadow-lg">
           <h3 class="m-0 mb-4 text-lg font-semibold">Borrowed Today</h3>
           <p id="borrowedToday" class="text-xl">Loading...</p>
         </div>
-        <div class="text-white p-6 rounded-lg shadow-lg bg-cyan-600">
+        <div class="p-6 text-white rounded-lg shadow-lg bg-cyan-600">
           <h3 class="m-0 mb-4 text-lg font-semibold">Returned</h3>
           <p id="returned" class="text-xl">Loading...</p>
         </div>
 
-        <div class="col-span-2 grid grid-cols-2 gap-6 mt-2 w-full">
-          <div class="bg-white p-8 rounded-2xl shadow-lg box-border flex flex-col justify-center w-full">
-            <h2 class="text-xl lg:text-2xl font-bold mb-4 text-gray-800 text-center">Library Activity Overview</h2>
+        <div class="grid w-full grid-cols-2 col-span-2 gap-6 mt-2">
+          <div class="box-border flex flex-col justify-center w-full p-8 bg-white shadow-lg rounded-2xl">
+            <h2 class="mb-4 text-xl font-bold text-center text-gray-800 lg:text-2xl">Library Activity Overview</h2>
             <canvas id="dashboardChart" width="600" height="300" class="block w-full max-w-full mx-auto" style="height: 220px !important; max-height: 220px !important;"></canvas>
           </div>
-          <div class="text-white p-6 rounded-lg shadow-lg bg-yellow-500 flex flex-col justify-start w-full">
+          <div class="flex flex-col justify-start w-full p-6 text-white bg-yellow-500 rounded-lg shadow-lg">
             <h3 class="m-0 mb-4 text-lg font-semibold text-start">Most Popular Books</h3>
-            <ul id="mostPopularBooks" class="list-none p-0">
+            <ul id="mostPopularBooks" class="p-0 list-none">
               <li>Loading...</li>
             </ul>
           </div>

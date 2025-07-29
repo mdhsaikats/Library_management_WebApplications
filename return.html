@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="css/output.css">
+</head>
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
+    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="p-0 list-none">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
+       <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a> 
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Return</li></a>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li>
+        <li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li>
+      </ul>
+    </aside>
+    <div class="flex items-center justify-center flex-1 p-8 m-8 border border-gray-200 rounded-lg shadow-lg bg-gradient-to-br from-cyan-50 to-gray-100">
+    <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <h1 class="flex items-center justify-center mb-4 text-2xl font-bold">Return a Book</h1>
+        <form id="returnForm" autocomplete="off">
+            <label for="userPhone" class="block mb-2 font-semibold text-gray-700">User Phone Number</label>
+            <input type="text" id="userPhone" name="userPhone" class="w-full p-3 mb-4 border border-gray-300 rounded-md" required placeholder="Enter User Phone Number">
+            <button type="submit" class="w-full p-3 mt-4 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Check Loans</button>
+        </form>
+        <div id="returnMsg" class="mt-4 text-base font-medium text-center"></div>
+        <div id="isbnSection" class="hidden mt-6">
+            <label for="isbnInput" class="block mb-2 font-semibold text-gray-700">Book ISBN to Return</label>
+            <input type="text" id="isbnInput" name="isbnInput" class="w-full p-3 mb-4 border border-gray-300 rounded-md" placeholder="Enter Book ISBN">
+            <button id="returnBookBtn" class="w-full p-3 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Return Book</button>
+        </div>
+        </div>
+    </div>
+    
+    
+  </div>
+
+  <script src="return.js"></script>
+</body>
+</html>
+
+
+
