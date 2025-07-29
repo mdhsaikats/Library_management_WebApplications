@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="css/output.css">
+</head>
+<body class="m-0 font-sans bg-gray-50">
+  <div class="flex h-screen">
+    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="p-0 list-none">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
+       <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a> 
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
+        <a href="transactions.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li></a>
+        <a href="settings.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Settings</li></a>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+     <div class="flex flex-col flex-1 min-h-0 p-8 m-8 overflow-hidden bg-white shadow-lg rounded-xl">
+      <h2 class="flex items-center gap-2 mb-8 text-2xl font-bold text-gray-800">
+        <img src="asset/setting.png" class="w-10 h-10"> Settings
+      </h2>
+      <div class="w-full p-4 border rounded-lg shadow-md bg-gray-50">
+        <h2>User Registration</h2>
+        <form id="userRegistrationForm" class="space-y-4">
+          <input type="text" id="userName" name="userName" placeholder="Full Name" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="email" id="userEmail" name="userEmail" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="text" id="userPhone" name="userPhone" placeholder="Phone Number" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <button type="submit" class="w-full p-3 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Register User</button>
+      </div>
+      <div class="w-full p-4 mt-4 border rounded-lg shadow-md h-25 bg-gray-50">
+        <h2 class="mb-2 text-lg font-semibold">Delete User</h2>
+        <form id="userDeletionForm" class="items-center justify-center space-y-4">
+          <input type="phone" id="deleteUserPhone" name="deleteUserPhone" placeholder="Phone Number" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <button type="submit" class="w-full p-3 text-white bg-red-600 rounded-md hover:bg-red-700">Delete User</button>
+        </form>
+      </div>
+      <div class="w-full min-h-0 p-4 mt-4 border rounded-lg shadow-md bg-gray-50">
+        <h2>Update User Number</h2>
+        <form id="userUpdateForm" class="space-y-4">
+          <input type="text" id="updateUserPhone" name="updateUserPhone" placeholder="Current Phone Number" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="text" id="newUserPhone" name="newUserPhone" placeholder="New Phone Number" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <button type="submit" class="w-full p-3 text-white bg-yellow-600 rounded-md hover:bg-yellow-700">Update User Number</button>
+        </form>
+      </div>
+
+     </div>
+    
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

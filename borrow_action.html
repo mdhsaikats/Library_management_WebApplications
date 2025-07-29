@@ -8,35 +8,35 @@
 </head>
 <body class="m-0 font-sans bg-gray-50">
   <div class="flex h-screen">
-    <aside class="w-56 bg-slate-800 text-white p-4 flex flex-col">
-      <h2 class="text-center mb-8"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
-      <ul class="list-none p-0">
-        <a href="main.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Dashboard</li></a>
-        <a href="books.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Books</li></a>
-        <a href="user.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Members</li></a>
-        <a href="borrow.html" class="text-white no-underline"><li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 bg-cyan-600">Borrow</li></a> 
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Return</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Transactions</li>
-        <li class="p-3 rounded-md mb-2 cursor-pointer transition-colors duration-300 hover:bg-cyan-600">Settings</li>
+    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
+      <ul class="p-0 list-none">
+        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
+        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
+        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
+        <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Borrow</li></a>
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
+        <a href="transactions.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li></a>
+        <a href="settings.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li></a>
       </ul>
     </aside>
 
-    <div class="flex-1 flex flex-col p-8 bg-white m-8 rounded-xl shadow-lg min-h-0 overflow-hidden">
-      <h2 class="text-2xl font-bold mb-8 text-gray-800 flex items-center gap-2">
+    <div class="flex flex-col flex-1 min-h-0 p-8 m-8 overflow-hidden bg-white shadow-lg rounded-xl">
+      <h2 class="flex items-center gap-2 mb-8 text-2xl font-bold text-gray-800">
         <img src="asset/borrow.png" class="w-10 h-10"> Borrow a Book
       </h2>
 
       <div class="flex mb-8">
         <input type="text" placeholder="Search by title, author, or ISBN..." class="flex-1 px-4 py-3 text-base border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <button class="px-5 py-3 bg-blue-500 text-white border-none text-base cursor-pointer rounded-r-lg hover:bg-blue-600 transition-colors duration-200">Search</button>
+        <button class="px-5 py-3 text-base text-white transition-colors duration-200 bg-blue-500 border-none rounded-r-lg cursor-pointer hover:bg-blue-600">Search</button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 flex-1 min-h-0 overflow-auto max-h-64" id="book-results">
+      <div class="grid flex-1 min-h-0 grid-cols-1 gap-5 overflow-auto md:grid-cols-2 lg:grid-cols-3 max-h-64" id="book-results">
         <!-- Search results will be rendered here by JS -->
       </div>
 
-      <div id="user-info" class="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-300 hidden">
-        <h3 class="text-lg font-semibold mb-2 text-gray-700">User Information</h3>
+      <div id="user-info" class="hidden p-4 mb-6 bg-gray-100 border border-gray-300 rounded-lg">
+        <h3 class="mb-2 text-lg font-semibold text-gray-700">User Information</h3>
         <p class="text-gray-700"><strong>Name:</strong> <span id="user-name"></span></p>
         <p class="text-gray-700"><strong>Email:</strong> <span id="user-email"></span></p>
         <p class="text-gray-700"><strong>Phone:</strong> <span id="user-phone"></span></p>

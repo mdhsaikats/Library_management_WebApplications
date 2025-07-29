@@ -15,34 +15,23 @@
         <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
         <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
        <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a> 
-        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Return</li></a>
-        <a href="transactions.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li></a>
+        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
+        <a href="transactions.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Transactions</li></a>
         <a href="settings.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li></a>
       </ul>
     </aside>
-    <div class="flex items-center justify-center flex-1 p-8 m-8 border border-gray-200 rounded-lg shadow-lg bg-gradient-to-br from-cyan-50 to-gray-100">
-    <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-        <h1 class="flex items-center justify-center mb-4 text-2xl font-bold">Return a Book</h1>
-        <form id="returnForm" autocomplete="off">
-            <label for="userPhone" class="block mb-2 font-semibold text-gray-700">User Phone Number</label>
-            <input type="text" id="userPhone" name="userPhone" class="w-full p-3 mb-4 border border-gray-300 rounded-md" required placeholder="Enter User Phone Number">
-            <button type="submit" class="w-full p-3 mt-4 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Check Loans</button>
-        </form>
-        <div id="returnMsg" class="mt-4 text-base font-medium text-center"></div>
-        <div id="isbnSection" class="hidden mt-6">
-            <label for="isbnInput" class="block mb-2 font-semibold text-gray-700">Book ISBN to Return</label>
-            <input type="text" id="isbnInput" name="isbnInput" class="w-full p-3 mb-4 border border-gray-300 rounded-md" placeholder="Enter Book ISBN">
-            <button id="returnBookBtn" class="w-full p-3 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Return Book</button>
-        </div>
-        </div>
-    </div>
-    
-    
-  </div>
 
-  <script src="return.js"></script>
+    <div class="flex items-center justify-center flex-1 p-8 m-8 border border-gray-200 rounded-lg shadow-lg bg-gradient-to-br from-cyan-50 to-gray-100">
+      <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <h1 class="flex items-center justify-center mb-4 text-2xl font-bold">Transaction History</h1>
+        <form id="transactionForm" autocomplete="off">    
+          <label for="userPhone" class="block mb-2 font-semibold text-gray-700">User Phone Number</label>
+          <input type="text" id="userPhone" name="userPhone" class="w-full p-3 mb-4 border border-gray-300 rounded-md" required placeholder="Enter User Phone Number">
+          <button type="submit" class="w-full p-3 mt-4 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Get Transactions</button>
+        </form>
+      </div>
+    </div>
+
+  <script src="transactions.js"></script>
 </body>
 </html>
-
-
-
