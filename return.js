@@ -25,7 +25,34 @@ document.addEventListener('DOMContentLoaded', function () {
     msgBlock.textContent = 'Checking user...';
     msgBlock.className = 'mt-4 text-base font-medium text-center text-gray-600';
     try {
-      // 1. Get user by phone
+      // 1. Check for overdue books first
+      const overdueRes = await fetch('http://localhost:8080/check_overdue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      
+      if (overdueRes.ok) {
+        const overdueData = await overdueRes.json();
+        if (overdueData.has_overdue) {
+          msgBlock.innerHTML = `
+            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p class="font-semibold text-red-700 mb-2">⚠️ Overdue Books Found!</p>
+              <p class="text-red-600 mb-3">${overdueData.message}</p>
+              <div class="text-sm text-red-600">
+                <p class="font-medium">Overdue Books:</p>
+                ${overdueData.overdue_books.map(book => 
+                  `<p>• ${book.title} (${book.days_overdue} days overdue)</p>`
+                ).join('')}
+              </div>
+            </div>
+          `;
+          msgBlock.className = 'mt-4 text-base font-medium text-center';
+          return;
+        }
+      }
+      
+      // 2. Get user by phone
       const userRes = await fetch('http://localhost:8080/get_users');
       const users = await userRes.json();
       const user = users.find(u => u.phone === phone);
@@ -35,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       userId = user.user_id;
-      // 2. Get all loans for this user
+      // 3. Get all loans for this user
       const loansRes = await fetch('http://localhost:8080/get_loans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

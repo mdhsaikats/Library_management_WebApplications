@@ -9,8 +9,8 @@
   </head>
 </head>
 <body class="m-0 font-sans bg-gray-50">
-  <div class="flex h-screen">
-    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+  <div class="flex min-h-screen">
+    <aside class="fixed z-10 flex flex-col w-64 min-h-screen p-4 text-white transition-all duration-300 lg:w-56 md:w-48 sm:w-16 bg-slate-800 md:relative">
       <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
       <ul class="p-0 list-none">
         <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
@@ -24,15 +24,23 @@
     </aside>
 
     <div class="flex items-center justify-center flex-1 p-8 m-8 border border-gray-200 rounded-lg shadow-lg bg-gradient-to-br from-cyan-50 to-gray-100">
-      <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-        <h1 class="flex items-center justify-center mb-4 text-2xl font-bold">Transaction History</h1>
-        <form id="transactionForm" autocomplete="off">    
-          <label for="userPhone" class="block mb-2 font-semibold text-gray-700">User Phone Number</label>
-          <input type="text" id="userPhone" name="userPhone" class="w-full p-3 mb-4 border border-gray-300 rounded-md" required placeholder="Enter User Phone Number">
-          <button type="submit" class="w-full p-3 mt-4 text-white rounded-md bg-cyan-600 hover:bg-cyan-700">Get Transactions</button>
-        </form>
-        <div id="txnMsg" class="mt-4 text-base font-medium text-center"></div>
-        <div id="txnList" class="mt-6"></div>
+      <div class="w-full max-w-2xl p-6 bg-white rounded-lg shadow-lg">
+        <h1 class="flex items-center justify-center mb-6 text-2xl font-bold">Transactions & Fine Payment</h1>
+        
+        <!-- Check Overdue Books Section -->
+        <div class="p-4 mb-8 border border-yellow-200 rounded-lg bg-yellow-50">
+          <h2 class="mb-4 text-lg font-semibold text-yellow-800">Check Overdue Books & Pay Fines</h2>
+          <form id="overdueForm" autocomplete="off">    
+            <label for="userPhone" class="block mb-2 font-semibold text-gray-700">User Phone Number</label>
+            <input type="text" id="userPhone" name="userPhone" class="w-full p-3 mb-4 border border-gray-300 rounded-md" required placeholder="Enter User Phone Number">
+            <button type="submit" class="w-full p-3 text-white bg-yellow-600 rounded-md hover:bg-yellow-700">Check Overdue Books</button>
+          </form>
+          <div id="overdueMsg" class="mt-4 text-base font-medium"></div>
+          <div id="overdueList" class="mt-4"></div>
+          <div id="payButtonSection" class="hidden mt-4">
+            <button id="payAllFines" class="w-full p-3 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700">Pay All Fines</button>
+          </div>
+        </div>
       </div>
     </div>
 

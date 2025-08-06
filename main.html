@@ -9,18 +9,61 @@
   </head>
 </head>
 <body class="m-0 font-sans bg-gray-50">
-  <div class="flex h-screen">
-    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
-      <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
-      <ul class="p-0 list-none">
-        <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">Dashboard</li></a>
-        <a href="books.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Books</li></a>
-        <a href="user.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Members</li></a>
-       <a href="borrow.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Borrow</li></a> 
-        <a href="return.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Return</li></a>
-        <a href="transactions.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Transactions</li></a>
-        <a href="settings.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Settings</li></a>
-      </ul>
+  <div class="flex min-h-screen">
+    <!-- Sidebar with responsive design -->
+    <aside class="fixed z-10 flex flex-col w-64 min-h-screen p-4 text-white transition-all duration-300 lg:w-56 md:w-48 sm:w-16 bg-slate-800 md:relative">
+      <!-- Logo section -->
+      <div class="flex items-center justify-center mb-8">
+        <img class="w-12 h-12 mx-auto sm:w-16 sm:h-16 lg:w-20 lg:h-20" src="asset/librarymain.png" alt="Library Logo">
+      </div>
+      
+      <!-- Navigation menu -->
+      <nav class="flex-1">
+        <ul class="p-0 space-y-2 list-none">
+          <li>
+            <a href="main.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Dashboard</span>
+              <span class="text-lg sm:hidden">📊</span>
+            </a>
+          </li>
+          <li>
+            <a href="books.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Books</span>
+              <span class="text-lg sm:hidden">📚</span>
+            </a>
+          </li>
+          <li>
+            <a href="user.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Members</span>
+              <span class="text-lg sm:hidden">👥</span>
+            </a>
+          </li>
+          <li>
+            <a href="borrow.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Borrow</span>
+              <span class="text-lg sm:hidden">📖</span>
+            </a>
+          </li>
+          <li>
+            <a href="return.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Return</span>
+              <span class="text-lg sm:hidden">↩️</span>
+            </a>
+          </li>
+          <li>
+            <a href="transactions.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Transactions</span>
+              <span class="text-lg sm:hidden">💰</span>
+            </a>
+          </li>
+          <li>
+            <a href="settings.html" class="flex items-center w-full p-3 text-white no-underline transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">
+              <span class="hidden ml-2 sm:inline">Settings</span>
+              <span class="text-lg sm:hidden">⚙️</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </aside>
 
     <main class="flex flex-col flex-1 p-8">
@@ -62,6 +105,37 @@
             <ul id="mostPopularBooks" class="p-0 list-none">
               <li>Loading...</li>
             </ul>
+          </div>
+        </div>
+
+        <!-- Loan Books List Section -->
+        <div class="w-full col-span-2 mt-6">
+          <div class="flex flex-col w-full p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-800"> Active Loan Books</h3>
+              <button onclick="refreshLoansList()" class="px-3 py-1 text-sm text-white transition-colors bg-blue-500 rounded hover:bg-blue-600">
+                Refresh
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-gray-50">
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">User Name</th>
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">Phone</th>
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">Book Title</th>
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">Author</th>
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">Issued Date</th>
+                    <th class="px-4 py-3 font-semibold text-left text-gray-700 border-b border-gray-200">Return Date</th>
+                  </tr>
+                </thead>
+                <tbody id="loansTableBody">
+                  <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">Loading loan information...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         

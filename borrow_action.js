@@ -8,25 +8,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isAvailable = book.status === 'available';
     
     return `
-      <div class="bg-gray-50 p-5 mb-4 rounded-lg border border-gray-200 transition-shadow duration-200 hover:shadow-lg max-h-60 overflow-hidden">
-        <h3 class="mt-0 mb-2 text-lg font-semibold text-gray-800">${book.title}</h3>
-        <p class="text-gray-600 mb-1"><strong>Author:</strong> ${book.author}</p>
-        <p class="text-gray-600 mb-1"><strong>ISBN:</strong> ${book.isbn}</p>
-        <p class="text-gray-600 mb-1"><strong>Genre:</strong> ${book.genre}</p>
-        <p class="font-bold mt-2 ${isAvailable ? 'text-green-600' : 'text-red-600'}">
-          Status: ${isAvailable ? 'Available' : 'Unavailable'}
-        </p>
-        <button 
-          class="mt-4 px-4 py-2 text-sm border-none rounded cursor-pointer transition-colors duration-200 ${
-            isAvailable 
-              ? 'bg-green-500 text-white hover:bg-green-600' 
-              : 'bg-gray-400 text-white cursor-not-allowed'
-          }"
-          ${!isAvailable ? 'disabled' : ''}
-          onclick="${isAvailable ? `borrowBook('${book.id}', '${book.available_copy_id || ''}')` : ''}"
-        >
-          ${isAvailable ? 'Borrow Book' : 'Not Available'}
-        </button>
+      <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-300 flex flex-col h-full">
+        <div class="flex-1">
+          <h3 class="mt-0 mb-3 text-lg font-semibold text-gray-800 line-clamp-2 min-h-[3.5rem]">${book.title}</h3>
+          <div class="space-y-2 mb-4">
+            <p class="text-sm text-gray-600"><strong>Author:</strong> <span class="font-normal">${book.author}</span></p>
+            <p class="text-sm text-gray-600"><strong>ISBN:</strong> <span class="font-normal">${book.isbn}</span></p>
+            <p class="text-sm text-gray-600"><strong>Genre:</strong> <span class="font-normal">${book.genre}</span></p>
+            <p class="text-sm text-gray-600"><strong>Year:</strong> <span class="font-normal">${book.published_year || 'N/A'}</span></p>
+          </div>
+        </div>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <p class="font-semibold mb-3 ${isAvailable ? 'text-green-600' : 'text-red-600'}">
+            <span class="inline-block w-2 h-2 rounded-full mr-2 ${isAvailable ? 'bg-green-500' : 'bg-red-500'}"></span>
+            ${isAvailable ? 'Available' : 'Unavailable'}
+          </p>
+          <button 
+            class="w-full px-4 py-2 text-sm font-medium border-none rounded-lg cursor-pointer transition-all duration-200 ${
+              isAvailable 
+                ? 'bg-green-500 text-white hover:bg-green-600 hover:shadow-sm active:bg-green-700' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }"
+            ${!isAvailable ? 'disabled' : ''}
+            onclick="${isAvailable ? `borrowBook('${book.id}', '${book.available_copy_id || ''}')` : ''}"
+          >
+            ${isAvailable ? 'Borrow Book' : '❌ Not Available'}
+          </button>
+        </div>
       </div>
     `;
   }
@@ -34,12 +42,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Function to handle book borrowing
   window.borrowBook = async function(bookId, copyId) {
     try {
-      // Get user ID from localStorage or session
-      const userId = localStorage.getItem('userId') || 1; // Default to 1 if not found
+      // Get user ID from the current user info or localStorage
+      let userId = window.currentUserId;
+      if (!userId) {
+        userId = localStorage.getItem('userId');
+      }
+      
+      if (!userId) {
+        alert('Please select a user first from the borrow page.');
+        return;
+      }
 
       if (!copyId) {
         alert('No available copy found for this book.');
         return;
+      }
+
+      // First check if user has overdue books
+      const params = new URLSearchParams(window.location.search);
+      const userPhone = params.get('user');
+      
+      if (userPhone) {
+        const overdueRes = await fetch('http://localhost:8080/check_overdue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: userPhone })
+        });
+        
+        if (overdueRes.ok) {
+          const overdueData = await overdueRes.json();
+          if (overdueData.has_overdue) {
+            alert(`❌ Cannot borrow book!\n\n${overdueData.message}\n\nOverdue books:\n${overdueData.overdue_books.map(book => `• ${book.title} (${book.days_overdue} days overdue)`).join('\n')}`);
+            return;
+          }
+        }
       }
 
       const response = await fetch('http://localhost:8080/borrow_book', {
@@ -49,7 +85,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         body: JSON.stringify({
           user_id: parseInt(userId),
-          book_id: parseInt(bookId),
           copy_id: parseInt(copyId)
         })
       });
@@ -124,11 +159,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('user-name').textContent = user.name;
         document.getElementById('user-email').textContent = user.email;
         document.getElementById('user-phone').textContent = user.phone;
-        document.getElementById('user-info').style.display = 'block';
-        // window.currentUserId = user.user_id; // Save for borrow actions
+        document.getElementById('user-info').classList.remove('hidden');
+        window.currentUserId = user.user_id; // Save for borrow actions
       }
     } catch (err) {
-      document.getElementById('user-info').style.display = 'none';
+      document.getElementById('user-info').classList.add('hidden');
     }
   }
 });

@@ -5,14 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Books - Library Management System</title>
   <link rel="stylesheet" href="css/output.css">
-   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    /* Custom responsive styles for the sidebar */
+    @media (max-width: 640px) {
+      .sidebar {
+        width: 4rem !important;
+      }
+      .sidebar .nav-text {
+        display: none;
+      }
+      .sidebar .nav-icon {
+        display: block;
+      }
+      .main-content {
+        margin-left: 4rem !important;
+      }
+    }
+    
+    /* Smooth transitions for sidebar */
+    .sidebar {
+      transition: width 0.3s ease-in-out;
+    }
+    
+    .main-content {
+      transition: margin-left 0.3s ease-in-out;
+    }
+  </style>
   </head>
 </head>
 <body class="m-0 font-sans bg-gray-50">
-  <div class="flex h-screen">
+  <div class="flex min-h-screen">
 
     <!-- Sidebar Navigation -->
-    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+    <aside class="fixed z-10 flex flex-col w-64 min-h-screen p-4 text-white transition-all duration-300 lg:w-56 md:w-48 sm:w-16 bg-slate-800 md:relative">
       <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png" alt="Library Logo"></h2>
       <ul class="p-0 list-none">
         <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>

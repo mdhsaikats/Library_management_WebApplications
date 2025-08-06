@@ -5,12 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Library Management System</title>
   <link rel="stylesheet" href="css/output.css">
-   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Custom scrollbar for better look */
+    .overflow-auto::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+  </style>
   </head>
 </head>
 <body class="m-0 font-sans bg-gray-50">
-  <div class="flex h-screen">
-    <aside class="flex flex-col w-56 p-4 text-white bg-slate-800">
+  <div class="flex min-h-screen">
+    <aside class="fixed z-10 flex flex-col w-64 min-h-screen p-4 text-white transition-all duration-300 lg:w-56 md:w-48 sm:w-16 bg-slate-800 md:relative">
       <h2 class="mb-8 text-center"><img class="w-20 h-20 mx-auto" src="asset/librarymain.png"></h2>
       <ul class="p-0 list-none">
         <a href="main.html" class="text-white no-underline"><li class="p-3 mb-2 transition-colors duration-300 rounded-md cursor-pointer hover:bg-cyan-600">Dashboard</li></a>
@@ -33,11 +61,13 @@
         <button class="px-5 py-3 text-base text-white transition-colors duration-200 bg-blue-500 border-none rounded-r-lg cursor-pointer hover:bg-blue-600">Search</button>
       </div>
 
-      <div class="grid flex-1 min-h-0 grid-cols-1 gap-5 overflow-auto md:grid-cols-2 lg:grid-cols-3 max-h-64" id="book-results">
-        <!-- Search results will be rendered here by JS -->
+      <div class="flex-1 overflow-auto">
+        <div class="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" id="book-results">
+          <!-- Search results will be rendered here by JS -->
+        </div>
       </div>
 
-      <div id="user-info" class="hidden p-4 mb-6 bg-gray-100 border border-gray-300 rounded-lg">
+      <div id="user-info" class="hidden p-4 mt-auto bg-gray-100 border border-gray-300 rounded-lg">
         <h3 class="mb-2 text-lg font-semibold text-gray-700">User Information</h3>
         <p class="text-gray-700"><strong>Name:</strong> <span id="user-name"></span></p>
         <p class="text-gray-700"><strong>Email:</strong> <span id="user-email"></span></p>

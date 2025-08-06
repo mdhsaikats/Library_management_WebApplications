@@ -83,9 +83,56 @@ async function loadMostPopularBooks() {
   }
 }
 
+async function loadLoansList() {
+  try {
+    const response = await fetch("http://localhost:8080/all_loans");
+    if (!response.ok) throw new Error("Failed to fetch loans data");
+    const loans = await response.json();
+    const tbody = document.getElementById("loansTableBody");
+    
+    if (!loans || loans.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-4 py-8 text-center text-gray-500">No active loans found</td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = loans.map(loan => {
+      const issuedDate = new Date(loan.issued_date).toLocaleDateString();
+      const returnDate = loan.return_date ? new Date(loan.return_date).toLocaleDateString() : "Pending";
+      
+      return `
+        <tr class="hover:bg-gray-50 border-b border-gray-100">
+          <td class="px-4 py-3 text-gray-800 font-medium">${loan.user_name || 'Unknown'}</td>
+          <td class="px-4 py-3 text-gray-600">${loan.user_phone || 'N/A'}</td>
+          <td class="px-4 py-3 text-gray-800 font-medium">${loan.book_title || 'Unknown'}</td>
+          <td class="px-4 py-3 text-gray-600">${loan.author || 'Unknown'}</td>
+          <td class="px-4 py-3 text-gray-600">${issuedDate}</td>
+          <td class="px-4 py-3 text-gray-600 ${returnDate === 'Pending' ? 'font-medium' : ''}">${returnDate}</td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error("Loans list load error:", error);
+    document.getElementById("loansTableBody").innerHTML = `
+      <tr>
+        <td colspan="6" class="px-4 py-8 text-center text-red-500">Error loading loan information</td>
+      </tr>
+    `;
+  }
+}
+
+// Function to refresh loans list (called by refresh button)
+function refreshLoansList() {
+  loadLoansList();
+}
+
 // Call this function on page load
 window.onload = function() {
   loadDashboard();
   loadMostPopularBooks();
-  // ...call other load functions if needed...
+  loadLoansList();
 };

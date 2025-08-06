@@ -553,9 +553,24 @@ func borrowBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Auto-generate any missing fines first
+	autoGenerateFines()
+
+	// Check for overdue books first
+	var overdueCount int
+	err := db.QueryRow(`SELECT COUNT(*) FROM loans WHERE user_id = ? AND returned_on IS NULL AND DATEDIFF(NOW(), issued_on) > 10`, request.UserID).Scan(&overdueCount)
+	if err != nil {
+		http.Error(w, "Error checking overdue books", http.StatusInternalServerError)
+		return
+	}
+	if overdueCount > 0 {
+		http.Error(w, "Cannot borrow books. You have overdue books. Please go to the Transaction section to pay fines first.", http.StatusBadRequest)
+		return
+	}
+
 	// Get the book_id for the requested copy
 	var bookID int
-	err := db.QueryRow("SELECT book_id FROM bookcopies WHERE copy_id = ?", request.CopyID).Scan(&bookID)
+	err = db.QueryRow("SELECT book_id FROM bookcopies WHERE copy_id = ?", request.CopyID).Scan(&bookID)
 	if err != nil {
 		http.Error(w, "Invalid book copy", http.StatusBadRequest)
 		return
@@ -652,6 +667,90 @@ func getLoans(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(loans)
 }
 
+func checkOverdueBooks(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		Phone string `json:"phone"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.Phone == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+
+	// Auto-generate any missing fines first
+	autoGenerateFines()
+
+	// Check if the user exists
+	var userID int
+	err := db.QueryRow("SELECT user_id FROM users WHERE phone = ?", request.Phone).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking user", http.StatusInternalServerError)
+		return
+	}
+
+	// Check for overdue books (more than 10 days)
+	type OverdueBook struct {
+		CopyID      int     `json:"copy_id"`
+		ISBN        string  `json:"isbn"`
+		Title       string  `json:"title"`
+		Author      string  `json:"author"`
+		IssuedOn    string  `json:"issued_on"`
+		DaysOverdue int     `json:"days_overdue"`
+		FineAmount  float64 `json:"fine_amount"`
+	}
+
+	var overdueBooks []OverdueBook
+	rows, err := db.Query(`
+		SELECT l.copy_id, b.isbn, b.title, b.author, l.issued_on,
+		       DATEDIFF(NOW(), l.issued_on) - 10 AS days_overdue,
+		       COALESCE(f.amount, (DATEDIFF(NOW(), l.issued_on) - 10) * 10.00) AS fine_amount
+		FROM loans l 
+		JOIN bookcopies bc ON l.copy_id = bc.copy_id 
+		JOIN books b ON bc.book_id = b.book_id 
+		LEFT JOIN fines f ON l.loan_id = f.loan_id
+		WHERE l.user_id = ? AND l.returned_on IS NULL 
+		AND DATEDIFF(NOW(), l.issued_on) > 10`, userID)
+	if err != nil {
+		http.Error(w, "Error fetching overdue books", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var book OverdueBook
+		if err := rows.Scan(&book.CopyID, &book.ISBN, &book.Title, &book.Author, &book.IssuedOn, &book.DaysOverdue, &book.FineAmount); err != nil {
+			http.Error(w, "Error scanning overdue book", http.StatusInternalServerError)
+			return
+		}
+		overdueBooks = append(overdueBooks, book)
+	}
+
+	response := map[string]interface{}{
+		"has_overdue":   len(overdueBooks) > 0,
+		"overdue_books": overdueBooks,
+		"message":       "",
+	}
+
+	if len(overdueBooks) > 0 {
+		response["message"] = "User has overdue books. Please go to the Transaction section to pay fines before borrowing or returning books."
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 // POST /return { userId, copyId }
 func returnBook(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -671,6 +770,24 @@ func returnBook(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User ID and Copy ID are required", http.StatusBadRequest)
 		return
 	}
+
+	// Check if this specific book is overdue (more than 10 days)
+	var daysLoaned int
+	err := db.QueryRow(`SELECT DATEDIFF(NOW(), issued_on) FROM loans WHERE user_id = ? AND copy_id = ? AND returned_on IS NULL`, request.UserID, request.CopyID).Scan(&daysLoaned)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "No active loan found for this user and copy", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking loan details", http.StatusInternalServerError)
+		return
+	}
+
+	if daysLoaned > 10 {
+		http.Error(w, "Cannot return book. This book is overdue. Please go to the Transaction section to pay the fine first.", http.StatusBadRequest)
+		return
+	}
+
 	// Update the loan record to set returned_on
 	query := "UPDATE loans SET returned_on = NOW() WHERE user_id = ? AND copy_id = ? AND returned_on IS NULL"
 	stmt, err := db.Prepare(query)
@@ -714,6 +831,254 @@ func addBookCopies(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"Book copies added successfully"}`))
 }
 
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		Phone string `json:"phone"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.Phone == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if user exists and get user_id
+	var userID int
+	err := db.QueryRow("SELECT user_id FROM users WHERE phone = ?", request.Phone).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking user", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user has any active loans
+	var activeLoans int
+	err = db.QueryRow("SELECT COUNT(*) FROM loans WHERE user_id = ? AND returned_on IS NULL", userID).Scan(&activeLoans)
+	if err != nil {
+		http.Error(w, "Error checking user loans", http.StatusInternalServerError)
+		return
+	}
+	if activeLoans > 0 {
+		http.Error(w, "Cannot delete user with active loans", http.StatusBadRequest)
+		return
+	}
+
+	// Delete user
+	_, err = db.Exec("DELETE FROM users WHERE user_id = ?", userID)
+	if err != nil {
+		http.Error(w, "Error deleting user", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
+}
+
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		Phone string `json:"phone"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.Phone == "" || request.Name == "" || request.Email == "" {
+		http.Error(w, "Phone, name, and email are required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if user exists
+	var userID int
+	err := db.QueryRow("SELECT user_id FROM users WHERE phone = ?", request.Phone).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking user", http.StatusInternalServerError)
+		return
+	}
+
+	// Update user
+	_, err = db.Exec("UPDATE users SET name = ?, email = ? WHERE user_id = ?", request.Name, request.Email, userID)
+	if err != nil {
+		http.Error(w, "Error updating user", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "User updated successfully"})
+}
+
+func deleteBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		ISBN string `json:"isbn"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.ISBN == "" {
+		http.Error(w, "ISBN is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if book exists and get book_id
+	var bookID int
+	err := db.QueryRow("SELECT book_id FROM books WHERE isbn = ?", request.ISBN).Scan(&bookID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Book not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking book", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if any copies are currently borrowed
+	var borrowedCopies int
+	err = db.QueryRow(`SELECT COUNT(*) FROM bookcopies bc JOIN loans l ON bc.copy_id = l.copy_id 
+		WHERE bc.book_id = ? AND l.returned_on IS NULL`, bookID).Scan(&borrowedCopies)
+	if err != nil {
+		http.Error(w, "Error checking book copies", http.StatusInternalServerError)
+		return
+	}
+	if borrowedCopies > 0 {
+		http.Error(w, "Cannot delete book with borrowed copies", http.StatusBadRequest)
+		return
+	}
+
+	// Delete book (this will cascade delete bookcopies due to foreign key constraint)
+	_, err = db.Exec("DELETE FROM books WHERE book_id = ?", bookID)
+	if err != nil {
+		http.Error(w, "Error deleting book", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Book deleted successfully"})
+}
+
+func updateAdmin(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	var request struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.Username == "" || request.Email == "" || request.Password == "" {
+		http.Error(w, "Username, email, and password are required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if admin exists
+	var adminID int
+	err := db.QueryRow("SELECT admin_id FROM admin WHERE username = ?", request.Username).Scan(&adminID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Admin not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error checking admin", http.StatusInternalServerError)
+		return
+	}
+
+	// Update admin
+	_, err = db.Exec("UPDATE admin SET email = ?, password_hash = ? WHERE admin_id = ?", request.Email, request.Password, adminID)
+	if err != nil {
+		http.Error(w, "Error updating admin", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Admin updated successfully"})
+}
+
+// Auto-generate fines for overdue loans
+func autoGenerateFines() error {
+	// Insert fines for all overdue loans that don't have fines yet
+	query := `
+		INSERT INTO fines (loan_id, amount, paid)
+		SELECT 
+			l.loan_id,
+			(DATEDIFF(NOW(), l.issued_on) - 10) * 10.00 as fine_amount,
+			0 as paid
+		FROM loans l
+		LEFT JOIN fines f ON l.loan_id = f.loan_id
+		WHERE l.returned_on IS NULL 
+		  AND DATEDIFF(NOW(), l.issued_on) > 10
+		  AND f.loan_id IS NULL`
+
+	result, err := db.Exec(query)
+	if err != nil {
+		fmt.Printf("Error auto-generating fines: %v\n", err)
+		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected > 0 {
+		fmt.Printf("Auto-generated %d fines for overdue books\n", rowsAffected)
+	}
+
+	return nil
+}
+
+// Endpoint to manually trigger auto-fine generation
+func generateFines(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	err := autoGenerateFines()
+	if err != nil {
+		http.Error(w, "Error generating fines", http.StatusInternalServerError)
+		return
+	}
+
+	// Return count of overdue loans and fines
+	var overdueCount, fineCount int
+	db.QueryRow("SELECT COUNT(*) FROM loans WHERE returned_on IS NULL AND DATEDIFF(NOW(), issued_on) > 10").Scan(&overdueCount)
+	db.QueryRow("SELECT COUNT(*) FROM fines WHERE paid = 0").Scan(&fineCount)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Fines generated successfully",
+		"overdue_loans": overdueCount,
+		"unpaid_fines":  fineCount,
+	})
+}
+
 func payFine(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -733,38 +1098,214 @@ func payFine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get loan info
+	fmt.Printf("[DEBUG] payFine called with UserID: %d, CopyID: %d\n", request.UserID, request.CopyID)
+
+	// First, auto-generate any missing fines
+	autoGenerateFines()
+
+	// Debug: Check if any loans exist for this user and copy
+	var debugCount int
+	err := db.QueryRow("SELECT COUNT(*) FROM loans WHERE user_id = ? AND copy_id = ?", request.UserID, request.CopyID).Scan(&debugCount)
+	fmt.Printf("[DEBUG] Total loans for user %d and copy %d: %d\n", request.UserID, request.CopyID, debugCount)
+
+	var debugActiveCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM loans WHERE user_id = ? AND copy_id = ? AND returned_on IS NULL", request.UserID, request.CopyID).Scan(&debugActiveCount)
+	fmt.Printf("[DEBUG] Active loans for user %d and copy %d: %d\n", request.UserID, request.CopyID, debugActiveCount)
+
+	// Get loan and fine info
 	var loanID int
-	var issuedOn, returnedOn sql.NullTime
-	err := db.QueryRow("SELECT loan_id, issued_on, returned_on FROM loans WHERE user_id = ? AND copy_id = ?", request.UserID, request.CopyID).Scan(&loanID, &issuedOn, &returnedOn)
+	var fineAmount float64
+	var issuedOn string
+	query := `
+		SELECT l.loan_id, l.issued_on, COALESCE(f.amount, (DATEDIFF(NOW(), l.issued_on) - 10) * 10.00)
+		FROM loans l 
+		LEFT JOIN fines f ON l.loan_id = f.loan_id
+		WHERE l.user_id = ? AND l.copy_id = ? AND l.returned_on IS NULL`
+
+	fmt.Printf("[DEBUG] Executing query: %s with params: %d, %d\n", query, request.UserID, request.CopyID)
+
+	err = db.QueryRow(query, request.UserID, request.CopyID).Scan(&loanID, &issuedOn, &fineAmount)
 	if err != nil {
-		http.Error(w, "Loan not found", http.StatusNotFound)
+		fmt.Printf("[DEBUG] Query error: %v\n", err)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Loan not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
-	// Assume due date is issued_on + N days (e.g., 7 days)
-	due := issuedOn.Time.AddDate(0, 0, 7)
-	overdueDays := int(returnedOn.Time.Sub(due).Hours() / 24)
-	if overdueDays < 0 {
-		overdueDays = 0
-	}
-	fineAmount := float64(overdueDays * 10)
 
-	// Update fines table
-	_, err = db.Exec("UPDATE fines SET amount = ?, paid = 1 WHERE loan_id = ?", fineAmount, loanID)
+	fmt.Printf("[DEBUG] Found loan - ID: %d, Fine: %.2f\n", loanID, fineAmount)
+
+	// Update or insert fine as paid
+	_, err = db.Exec(`
+		INSERT INTO fines (loan_id, amount, paid) VALUES (?, ?, 1)
+		ON DUPLICATE KEY UPDATE amount = ?, paid = 1`,
+		loanID, fineAmount, fineAmount)
 	if err != nil {
+		fmt.Printf("[DEBUG] Error updating fine: %v\n", err)
 		http.Error(w, "Error updating fine", http.StatusInternalServerError)
 		return
 	}
-	// Set book copy as available
+
+	// Mark loan as returned and book as available
+	_, err = db.Exec("UPDATE loans SET returned_on = NOW() WHERE loan_id = ?", loanID)
+	if err != nil {
+		fmt.Printf("[DEBUG] Error updating loan: %v\n", err)
+		http.Error(w, "Error updating loan", http.StatusInternalServerError)
+		return
+	}
+
 	_, err = db.Exec("UPDATE bookcopies SET status = 'available' WHERE copy_id = ?", request.CopyID)
 	if err != nil {
+		fmt.Printf("[DEBUG] Error updating book copy: %v\n", err)
 		http.Error(w, "Error updating book copy status", http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Printf("[DEBUG] Fine payment successful for loan %d\n", loanID)
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":    "Fine paid and book returned successfully",
 		"fineAmount": fineAmount,
 	})
+}
+
+// Debug endpoint to see all loans in the database
+func debugLoans(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	type LoanDebug struct {
+		LoanID      int     `json:"loan_id"`
+		UserID      int     `json:"user_id"`
+		CopyID      int     `json:"copy_id"`
+		IssuedOn    string  `json:"issued_on"`
+		ReturnedOn  *string `json:"returned_on"`
+		TotalDays   int     `json:"total_days"`
+		DaysOverdue int     `json:"days_overdue"`
+		Status      string  `json:"status"`
+		UserPhone   string  `json:"user_phone"`
+		BookTitle   string  `json:"book_title"`
+	}
+
+	query := `
+		SELECT 
+			l.loan_id,
+			l.user_id,
+			l.copy_id,
+			l.issued_on,
+			l.returned_on,
+			DATEDIFF(NOW(), l.issued_on) as total_days,
+			GREATEST(0, DATEDIFF(NOW(), l.issued_on) - 10) as days_overdue,
+			CASE 
+				WHEN l.returned_on IS NOT NULL THEN 'RETURNED'
+				WHEN DATEDIFF(NOW(), l.issued_on) > 10 THEN 'OVERDUE'
+				ELSE 'ACTIVE'
+			END as status,
+			u.phone as user_phone,
+			b.title as book_title
+		FROM loans l
+		JOIN users u ON l.user_id = u.user_id
+		JOIN bookcopies bc ON l.copy_id = bc.copy_id
+		JOIN books b ON bc.book_id = b.book_id
+		ORDER BY l.issued_on DESC`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		http.Error(w, "Error fetching loans: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var loans []LoanDebug
+	for rows.Next() {
+		var loan LoanDebug
+		var returnedOn sql.NullString
+		err := rows.Scan(&loan.LoanID, &loan.UserID, &loan.CopyID, &loan.IssuedOn,
+			&returnedOn, &loan.TotalDays, &loan.DaysOverdue, &loan.Status,
+			&loan.UserPhone, &loan.BookTitle)
+		if err != nil {
+			http.Error(w, "Error scanning loan: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if returnedOn.Valid {
+			loan.ReturnedOn = &returnedOn.String
+		}
+		loans = append(loans, loan)
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"loans": loans,
+		"count": len(loans),
+	})
+}
+
+// Get all loans with user and book information for dashboard
+func getAllLoans(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	type LoanInfo struct {
+		UserName   string  `json:"user_name"`
+		UserPhone  string  `json:"user_phone"`
+		BookTitle  string  `json:"book_title"`
+		Author     string  `json:"author"`
+		IssuedDate string  `json:"issued_date"`
+		ReturnDate *string `json:"return_date"`
+		Status     string  `json:"status"`
+	}
+
+	query := `
+		SELECT 
+			u.name as user_name,
+			u.phone as user_phone,
+			b.title as book_title,
+			b.author as author,
+			DATE_FORMAT(l.issued_on, '%Y-%m-%d') as issued_date,
+			DATE_FORMAT(l.returned_on, '%Y-%m-%d') as return_date,
+			CASE 
+				WHEN l.returned_on IS NOT NULL THEN 'Returned'
+				ELSE 'Pending'
+			END as status
+		FROM loans l
+		JOIN users u ON l.user_id = u.user_id
+		JOIN bookcopies bc ON l.copy_id = bc.copy_id
+		JOIN books b ON bc.book_id = b.book_id
+		ORDER BY l.issued_on DESC
+		LIMIT 50`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		http.Error(w, "Error fetching loans: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var loans []LoanInfo
+	for rows.Next() {
+		var loan LoanInfo
+		var returnDate sql.NullString
+		err := rows.Scan(&loan.UserName, &loan.UserPhone, &loan.BookTitle, &loan.Author,
+			&loan.IssuedDate, &returnDate, &loan.Status)
+		if err != nil {
+			http.Error(w, "Error scanning loan: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if returnDate.Valid {
+			loan.ReturnDate = &returnDate.String
+		}
+		loans = append(loans, loan)
+	}
+
+	// Return the loans array directly (not wrapped in an object)
+	json.NewEncoder(w).Encode(loans)
 }
 
 func main() {
@@ -799,8 +1340,16 @@ func main() {
 	r.Post("/borrow_book", borrowBook)
 	r.Post("/return", returnBook)
 	r.Post("/get_loans", getLoans)
+	r.Post("/check_overdue", checkOverdueBooks)
+	r.Post("/generate_fines", generateFines)
 	r.Post("/add_book_copies", addBookCopies)
 	r.Post("/pay_fine", payFine)
+	r.Get("/debug_loans", debugLoans)
+	r.Get("/all_loans", getAllLoans)
+	r.Post("/delete_user", deleteUser)
+	r.Post("/update_user", updateUser)
+	r.Post("/delete_book", deleteBook)
+	r.Post("/update_admin", updateAdmin)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", r)

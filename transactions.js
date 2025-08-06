@@ -1,104 +1,201 @@
-document.getElementById('transactionForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const phone = document.getElementById('userPhone').value.trim();
-  document.getElementById('txnMsg').textContent = "";
-  document.getElementById('txnList').innerHTML = "";
+document.addEventListener('DOMContentLoaded', function () {
+  const overdueForm = document.getElementById('overdueForm');
+  const overdueMsg = document.getElementById('overdueMsg');
+  const overdueList = document.getElementById('overdueList');
+  const payButtonSection = document.getElementById('payButtonSection');
+  const payAllFinesBtn = document.getElementById('payAllFines');
 
-  // Get user ID from phone
-  let userID;
-  try {
-    const res = await fetch('http://localhost:8080/get_users');
-    const users = await res.json();
-    const user = users.find(u => u.phone === phone);
-    if (!user) {
-      document.getElementById('txnMsg').textContent = "User not found.";
+  let currentPhone = '';
+  let currentOverdueBooks = [];
+
+  // Handle overdue book checking and fine payment
+  overdueForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    overdueMsg.textContent = '';
+    overdueList.innerHTML = '';
+    payButtonSection.classList.add('hidden');
+    
+    const phone = document.getElementById('userPhone').value.trim();
+    if (!phone) {
+      overdueMsg.textContent = 'Please enter a phone number.';
+      overdueMsg.className = 'mt-4 text-base font-medium text-red-500';
       return;
     }
-    userID = user.user_id;
-  } catch {
-    document.getElementById('txnMsg').textContent = "Error fetching user info.";
-    return;
-  }
 
-  // Get all loans for user
-  let loans;
-  try {
-    const res = await fetch('http://localhost:8080/get_loans', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone })
-    });
-    loans = await res.json();
-  } catch {
-    document.getElementById('txnMsg').textContent = "Error fetching loans.";
-    return;
-  }
+    currentPhone = phone;
+    overdueMsg.textContent = 'Checking for overdue books...';
+    overdueMsg.className = 'mt-4 text-base font-medium text-gray-600';
 
-  // Filter for returned books with unpaid fines
-  const txnList = document.getElementById('txnList');
-  let found = false;
-  for (const loan of loans) {
-    if (loan.returned_on) {
-      // Calculate overdue days
-      const dueDate = new Date(loan.issued_on);
-      dueDate.setDate(dueDate.getDate() + 7); // 7 days loan period
-      const returnedDate = new Date(loan.returned_on);
-      const overdueDays = Math.max(0, Math.floor((returnedDate - dueDate) / (1000 * 60 * 60 * 24)));
-      const fineAmount = overdueDays * 10;
-      if (fineAmount > 0 && !loan.fine_paid) {
-        found = true;
-        const txnDiv = document.createElement('div');
-        txnDiv.className = "mb-6 p-4 border border-red-300 rounded-lg bg-red-50";
-        txnDiv.innerHTML = `
-          <div class="mb-2 font-semibold text-gray-700">Book: ${loan.title || ''} (ISBN: ${loan.isbn || ''})</div>
-          <div class="mb-2">Returned on: <span class="font-mono">${loan.returned_on}</span></div>
-          <div class="mb-2">Due date: <span class="font-mono">${dueDate.toISOString().slice(0,10)}</span></div>
-          <div class="mb-2 text-red-700 font-bold">Fine: ${fineAmount} TK</div>
-          <button class="payBtn w-full p-3 mt-2 text-white rounded-md bg-red-600 hover:bg-red-700" data-loanid="${loan.loan_id}" data-copyid="${loan.copy_id}">Pay Fine & Complete Return</button>
-        `;
-        txnList.appendChild(txnDiv);
-      }
-    }
-  }
-  if (!found) {
-    txnList.innerHTML = `<div class="text-green-700 font-semibold">No unpaid fines or overdue returns for this user.</div>`;
-  }
-});
-
-// Handle pay fine button click
-document.getElementById('txnList').addEventListener('click', async function(e) {
-  if (e.target.classList.contains('payBtn')) {
-    const copyID = e.target.getAttribute('data-copyid');
-    const phone = document.getElementById('userPhone').value.trim();
-    let userID;
     try {
-      const res = await fetch('http://localhost:8080/get_users');
-      const users = await res.json();
-      const user = users.find(u => u.phone === phone);
+      const response = await fetch('http://localhost:8080/check_overdue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to check overdue books');
+      }
+
+      const data = await response.json();
+      
+      if (data.has_overdue) {
+        currentOverdueBooks = data.overdue_books;
+        overdueMsg.textContent = 'Overdue books found! Please pay fines to continue borrowing/returning.';
+        overdueMsg.className = 'mt-4 text-base font-medium text-red-600';
+        
+        const totalFine = data.overdue_books.reduce((sum, book) => sum + (book.fine_amount || book.days_overdue * 10), 0);
+        
+        overdueList.innerHTML = `
+          <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 class="font-semibold text-red-700 mb-3"> Overdue Books</h3>
+            ${data.overdue_books.map(book => `
+              <div class="mb-4 p-3 bg-white border border-red-100 rounded">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-medium text-gray-800">${book.title}</p>
+                    <p class="text-sm text-gray-600">Author: ${book.author}</p>
+                    <p class="text-sm text-gray-600">ISBN: ${book.isbn}</p>
+                    <p class="text-sm text-red-600">Overdue: ${book.days_overdue} days</p>
+                    <p class="text-sm font-medium text-red-700">Fine: ${book.fine_amount || book.days_overdue * 10} Tk</p>
+                  </div>
+                  <button 
+                    onclick="payFine('${phone}', ${book.copy_id})" 
+                    class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 transition-colors"
+                  >
+                    Pay Fine
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+            <div class="mt-4 p-3 bg-red-100 rounded-lg border border-red-300">
+              <p class="font-semibold text-red-800">Total Fine Amount: ${totalFine.toFixed(2)} Tk</p>
+            </div>
+          </div>
+        `;
+        
+        // Show the Pay All Fines button
+        payButtonSection.classList.remove('hidden');
+      } else {
+        overdueMsg.textContent = '✅ No overdue books found! This user can borrow and return books normally.';
+        overdueMsg.className = 'mt-4 text-base font-medium text-green-600';
+      }
+    } catch (error) {
+      overdueMsg.textContent = 'Error checking overdue books. Please try again.';
+      overdueMsg.className = 'mt-4 text-base font-medium text-red-500';
+      console.error('Error:', error);
+    }
+  });
+
+  // Handle Pay All Fines button
+  payAllFinesBtn.addEventListener('click', async function() {
+    if (!currentPhone || currentOverdueBooks.length === 0) {
+      alert('No overdue books to pay for.');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to pay all fines for ${currentOverdueBooks.length} overdue book(s)?`)) {
+      return;
+    }
+
+    try {
+      // First get the user ID from phone
+      const userRes = await fetch('http://localhost:8080/get_users');
+      const users = await userRes.json();
+      const user = users.find(u => u.phone === currentPhone);
+      
       if (!user) {
-        document.getElementById('txnMsg').textContent = "User not found.";
+        alert('User not found');
         return;
       }
-      userID = user.user_id;
-    } catch {
-      document.getElementById('txnMsg').textContent = "Error fetching user info.";
+
+      let totalPaid = 0;
+      let successCount = 0;
+
+      // Pay fine for each overdue book
+      for (const book of currentOverdueBooks) {
+        try {
+          console.log(`Paying fine for book: ${book.title}, userId: ${user.user_id}, copyId: ${book.copy_id}`);
+          
+          const response = await fetch('http://localhost:8080/pay_fine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: user.user_id, 
+              copyId: parseInt(book.copy_id) 
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`Fine paid successfully for ${book.title}:`, result);
+            totalPaid += result.fineAmount;
+            successCount++;
+          } else {
+            const errorText = await response.text();
+            console.error(`Error paying fine for ${book.title}:`, errorText);
+            alert(`Error paying fine for "${book.title}": ${errorText}`);
+          }
+        } catch (error) {
+          console.error(`Error paying fine for book ${book.title}:`, error);
+          alert(`Network error paying fine for "${book.title}": ${error.message}`);
+        }
+      }
+
+      if (successCount > 0) {
+        alert(`✅ Successfully paid fines for ${successCount} book(s)!\nTotal amount paid: $${totalPaid.toFixed(2)}\nAll books are now available.`);
+        // Refresh the overdue list
+        overdueForm.dispatchEvent(new Event('submit'));
+      } else {
+        alert('❌ Failed to pay any fines. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error paying all fines:', error);
+      alert('❌ Error paying fines. Please try again.');
+    }
+  });
+
+  // Global function for paying individual fines
+  window.payFine = async function(phone, copyId) {
+    if (!confirm('Are you sure you want to pay the fine for this book?')) {
       return;
     }
-    // Pay fine
+
     try {
-      const res = await fetch('http://localhost:8080/pay_fine', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userID, copyId: copyID })
-      });
-      const result = await res.json();
-      if (result.message) {
-        e.target.parentElement.innerHTML = `<div class="text-green-700 font-semibold">${result.message}</div>`;
-      } else {
-        e.target.parentElement.innerHTML = `<div class="text-green-700 font-semibold">Fine paid and book returned!</div>`;
+      // First get the user ID from phone
+      const userRes = await fetch('http://localhost:8080/get_users');
+      const users = await userRes.json();
+      const user = users.find(u => u.phone === phone);
+      
+      if (!user) {
+        alert('User not found');
+        return;
       }
-    } catch {
-      e.target.parentElement.innerHTML = `<div class="text-red-700 font-semibold">Error processing payment.</div>`;
+
+      console.log(`Paying individual fine - userId: ${user.user_id}, copyId: ${copyId}`);
+
+      const response = await fetch('http://localhost:8080/pay_fine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user.user_id, 
+          copyId: parseInt(copyId) 
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`✅ Fine paid successfully! Amount: $${result.fineAmount}\nBook is now available.`);
+        // Refresh the overdue list
+        overdueForm.dispatchEvent(new Event('submit'));
+      } else {
+        const errorText = await response.text();
+        console.error('Pay fine error response:', errorText);
+        alert(`❌ Error paying fine: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error paying fine:', error);
+      alert(`❌ Error paying fine: ${error.message}`);
     }
-  }
+  };
 });
