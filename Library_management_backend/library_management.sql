@@ -60,14 +60,14 @@ CREATE TABLE `loans` (
   `loan_id` int(11) NOT NULL AUTO_INCREMENT,
   `copy_id` int(11) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `issued_on` date DEFAULT curdate(),
+  `issued_on` date NOT NULL,
   `returned_on` date DEFAULT NULL,
   PRIMARY KEY (`loan_id`),
   KEY `copy_id` (`copy_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `loans_ibfk_1` FOREIGN KEY (`copy_id`) REFERENCES `bookcopies` (`copy_id`),
   CONSTRAINT `loans_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (

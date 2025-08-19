@@ -589,7 +589,7 @@ func borrowBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert into loans
-	query := "INSERT INTO loans (user_id, copy_id) VALUES (?, ?)"
+	query := "INSERT INTO loans (user_id, copy_id, issued_on) VALUES (?, ?, CURDATE())"
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		http.Error(w, "Error preparing statement", http.StatusInternalServerError)
@@ -715,8 +715,8 @@ func checkOverdueBooks(w http.ResponseWriter, r *http.Request) {
 	var overdueBooks []OverdueBook
 	rows, err := db.Query(`
 		SELECT l.copy_id, b.isbn, b.title, b.author, l.issued_on,
-		       DATEDIFF(NOW(), l.issued_on) - 10 AS days_overdue,
-		       COALESCE(f.amount, (DATEDIFF(NOW(), l.issued_on) - 10) * 10.00) AS fine_amount
+			   DATEDIFF(NOW(), l.issued_on) - 10 AS days_overdue,
+			   COALESCE(f.amount, (DATEDIFF(NOW(), l.issued_on) - 10) * 10.00) AS fine_amount
 		FROM loans l 
 		JOIN bookcopies bc ON l.copy_id = bc.copy_id 
 		JOIN books b ON bc.book_id = b.book_id 
@@ -862,21 +862,22 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user has any active loans
-	var activeLoans int
-	err = db.QueryRow("SELECT COUNT(*) FROM loans WHERE user_id = ? AND returned_on IS NULL", userID).Scan(&activeLoans)
+	// Check if user has any loan history (active or returned)
+	var totalLoans int
+	err = db.QueryRow("SELECT COUNT(*) FROM loans WHERE user_id = ?", userID).Scan(&totalLoans)
 	if err != nil {
 		http.Error(w, "Error checking user loans", http.StatusInternalServerError)
 		return
 	}
-	if activeLoans > 0 {
-		http.Error(w, "Cannot delete user with active loans", http.StatusBadRequest)
+	if totalLoans > 0 {
+		http.Error(w, "Cannot delete user with loan history", http.StatusBadRequest)
 		return
 	}
 
 	// Delete user
 	_, err = db.Exec("DELETE FROM users WHERE user_id = ?", userID)
 	if err != nil {
+		fmt.Printf("[deleteUser] Error deleting user (user_id=%d): %v\n", userID, err)
 		http.Error(w, "Error deleting user", http.StatusInternalServerError)
 		return
 	}
