@@ -714,6 +714,59 @@ func addBookCopies(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"Book copies added successfully"}`))
 }
 
+func payFine(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	var request struct {
+		UserID int `json:"userId"`
+		CopyID int `json:"copyId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if request.UserID == 0 || request.CopyID == 0 {
+		http.Error(w, "User ID and Copy ID are required", http.StatusBadRequest)
+		return
+	}
+
+	// Get loan info
+	var loanID int
+	var issuedOn, returnedOn sql.NullTime
+	err := db.QueryRow("SELECT loan_id, issued_on, returned_on FROM loans WHERE user_id = ? AND copy_id = ?", request.UserID, request.CopyID).Scan(&loanID, &issuedOn, &returnedOn)
+	if err != nil {
+		http.Error(w, "Loan not found", http.StatusNotFound)
+		return
+	}
+	// Assume due date is issued_on + N days (e.g., 7 days)
+	due := issuedOn.Time.AddDate(0, 0, 7)
+	overdueDays := int(returnedOn.Time.Sub(due).Hours() / 24)
+	if overdueDays < 0 {
+		overdueDays = 0
+	}
+	fineAmount := float64(overdueDays * 10)
+
+	// Update fines table
+	_, err = db.Exec("UPDATE fines SET amount = ?, paid = 1 WHERE loan_id = ?", fineAmount, loanID)
+	if err != nil {
+		http.Error(w, "Error updating fine", http.StatusInternalServerError)
+		return
+	}
+	// Set book copy as available
+	_, err = db.Exec("UPDATE bookcopies SET status = 'available' WHERE copy_id = ?", request.CopyID)
+	if err != nil {
+		http.Error(w, "Error updating book copy status", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":    "Fine paid and book returned successfully",
+		"fineAmount": fineAmount,
+	})
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:29112003@tcp(127.0.0.1:3306)/library_management")
@@ -747,6 +800,7 @@ func main() {
 	r.Post("/return", returnBook)
 	r.Post("/get_loans", getLoans)
 	r.Post("/add_book_copies", addBookCopies)
+	r.Post("/pay_fine", payFine)
 
 	fmt.Println("Server started at :8080")
 	err = http.ListenAndServe(":8080", r)

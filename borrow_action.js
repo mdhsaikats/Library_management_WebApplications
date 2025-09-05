@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isAvailable = book.status === 'available';
     
     return `
-      <div class="bg-gray-50 p-5 mb-4 rounded-lg border border-gray-200 transition-shadow duration-200 hover:shadow-lg max-h-40 overflow-hidden">
+      <div class="bg-gray-50 p-5 mb-4 rounded-lg border border-gray-200 transition-shadow duration-200 hover:shadow-lg max-h-60 overflow-hidden">
         <h3 class="mt-0 mb-2 text-lg font-semibold text-gray-800">${book.title}</h3>
         <p class="text-gray-600 mb-1"><strong>Author:</strong> ${book.author}</p>
         <p class="text-gray-600 mb-1"><strong>ISBN:</strong> ${book.isbn}</p>
